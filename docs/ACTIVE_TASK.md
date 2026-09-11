@@ -172,6 +172,11 @@ the registry version. Expected files: `README.md`, `package.json` and
   [a2ui-project/a2ui#2628](https://github.com/a2ui-project/a2ui/discussions/2628)
   announces it in "Show and tell". The listing takes effect when the
   maintainers merge the pull request.
+  Google's CLA check failed on the first commit because its message
+  carried a `Co-Authored-By` trailer naming the assistant, which the bot
+  counts as a contributor without a CLA; the commit was amended without the
+  trailer and force-pushed with the identical diff. Commits in these
+  repositories never list the assistant as a co-author.
 
 ## Current task
 
