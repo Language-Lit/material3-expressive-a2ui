@@ -282,4 +282,3 @@ Created by Romullo Queiroz de Assis Bernardo, as part of
 [Material Symbols](https://fonts.google.com/icons) (Apache 2.0). Feedback and
 integration reports are welcome in
 [GitHub Issues](https://github.com/Language-Lit/material3-expressive-a2ui/issues).
-# material3-expressive-a2ui

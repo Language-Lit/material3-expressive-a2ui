@@ -104,6 +104,46 @@ the data arrives (documented on `onError`); and the movie card example lists
 its trailer button both as a column child and as the modal's trigger, so it
 renders twice in any renderer that draws the trigger.
 
+## T02 — Initial public release
+
+Status: prepared; publication pending
+Approved: 2026-09-11 (owner: "Let's publish then? Guide me.")
+
+### Scope and expected files
+
+Prepare and publish version 0.1.0 as the package's initial public npm
+release. Verify from a clean tree and inspect the final tarball, remove the
+stray repository-name heading that GitHub's generated README appended after
+the license section, declare public access in `package.json` so the scoped
+first publish needs no flag, record the release here, commit and push the
+preparation, then the owner publishes from their own terminal. After
+publication, verify clean installation from npm, create the annotated
+`v0.1.0` tag and GitHub release, set the repository description, homepage
+and topics, and switch the design system's site from the packed tarball to
+the registry version. Expected files: `README.md`, `package.json` and
+`docs/ACTIVE_TASK.md`.
+
+### Acceptance checks
+
+1. `npm run verify` and the final `npm pack --dry-run` pass from a clean
+   tree.
+2. The packaged README ends with the license section and no stray heading.
+3. `@language-lit/material3-expressive-a2ui@0.1.0` is publicly available
+   from the npm registry and installs successfully in a clean consumer
+   fixture that imports the entry and the stylesheet export.
+4. The `v0.1.0` tag and GitHub release point to the published commit.
+
+### Verification record
+
+- `npm run verify` passes from the clean tree: typecheck, 79 tests in 6
+  files, build, namespace guard and package inspection.
+- `npm pack --dry-run` reports a 71.2 kB public tarball (389.6 kB unpacked)
+  containing the expected 8 files: `LICENSE`, `README.md`, `package.json`,
+  `dist/index.js` and its map, `dist/index.d.ts`, and `dist/styles.css` and
+  its map.
+- Publication, installation check, tag and GitHub release: to be recorded
+  after the owner publishes.
+
 ## Current task
 
-None. Publishing (T02) awaits the owner's confirmation.
+T02. Publication awaits the owner's `npm publish` from their own terminal.

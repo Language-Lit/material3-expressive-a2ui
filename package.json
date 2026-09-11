@@ -8,6 +8,9 @@
     "type": "git",
     "url": "git+https://github.com/Language-Lit/material3-expressive-a2ui.git"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "sideEffects": [
     "**/*.css"
