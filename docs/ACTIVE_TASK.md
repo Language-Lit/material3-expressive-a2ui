@@ -212,14 +212,20 @@ announcement thread, not package or repository contents.
   locally: 2240 by 2720 viewport at device scale 1 with the document zoomed
   2x, light scheme, a synthetic pointer drawn in the top layer, scenario 2
   (fill the form, pick Counter and 4 guests, press Reserve) followed by
-  scenario 3 (Evening tab, open the booking dialog, dismiss it).
+  scenario 3 (Evening tab, open the booking dialog, dismiss it). Chrome 128
+  and later scale `getBoundingClientRect` by CSS zoom while lengths set
+  inside the zoomed subtree scale again, which put the Tabs indicator at
+  twice its offset in the first cut; the recording script undoes that
+  scaling for measurements inside `.m3e-tabs` only. At a real 2x device
+  scale without zoom the indicator is correct, so the site and the design
+  system need no change.
 - `docs/assets/a2ui-preview.webp`: 1120 by 1430, 46.2 kB, an element
   screenshot of the demo after the reserve action, showing the filled form
   and the action the agent received.
 - Video encoded with ffmpeg 7.1 from the raw screencast, cropped to the
   demo and downscaled with Lanczos: `a2ui-demo.mp4` (H.264, 1120 by 1332,
-  30 fps, 27.8 s, 946 kB) and `a2ui-demo.webm` (VP9, 975 kB), poster
-  `a2ui-poster.webp` (40.7 kB). Kept in the owner's `Desktop/m3e-web`
+  30 fps, 27.5 s, 881 kB) and `a2ui-demo.webm` (VP9, 938 kB), poster
+  `a2ui-poster.webp` (41.8 kB). Kept in the owner's `Desktop/m3e-web`
   folder next to the AG-UI media; the owner attaches the MP4 to
   `a2ui-project/a2ui` discussion #2628.
 - `files` in `package.json` is unchanged, so the tarball still carries
