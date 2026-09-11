@@ -106,8 +106,9 @@ renders twice in any renderer that draws the trigger.
 
 ## T02 — Initial public release
 
-Status: prepared; publication pending
+Status: complete
 Approved: 2026-09-11 (owner: "Let's publish then? Guide me.")
+Completed: 2026-09-12
 
 ### Scope and expected files
 
@@ -141,9 +142,28 @@ the registry version. Expected files: `README.md`, `package.json` and
   containing the expected 8 files: `LICENSE`, `README.md`, `package.json`,
   `dist/index.js` and its map, `dist/index.d.ts`, and `dist/styles.css` and
   its map.
-- Publication, installation check, tag and GitHub release: to be recorded
-  after the owner publishes.
+- The owner published from their own terminal on 2026-09-12. The registry
+  lists `0.1.0` under the `latest` tag with public access, records git
+  commit `ce6c9b1` (the preparation commit) and reports shasum
+  `93f12610933d1e7f27d77d17fd554a08d50f10d3`, the same as the local dry
+  run. The registry document answered 404 for about forty seconds after
+  `npm publish` returned, then 200; a first check straight after a new
+  package's publish can be replication lag rather than a failed publish.
+- A tarball re-downloaded from the registry contains the expected 8 files;
+  its `dist/index.js` carries the `processMessages` copy and its README ends
+  with the license section.
+- A clean temporary consumer installed `0.1.0` from the registry next to
+  the design system, `@a2ui/web_core` 0.10.7, React and ReactDOM, imported
+  the entry (29 exports, including `useA2ui`, `A2uiSurface`,
+  `material3Catalog`, `createMaterial3Catalog` and
+  `createMaterial3Component`) and resolved the `./styles.css` export;
+  `npm ls` reported no invalid or missing peer.
+- Annotated tag `v0.1.0` points at `ce6c9b1` on GitHub, and the public
+  release "v0.1.0 — Initial release" was created from it. The repository
+  description, homepage and topics now match the AG-UI companion's.
+- The design system's documentation site switched from the packed tarball
+  to the registry version; that repository records the switch as its T64.
 
 ## Current task
 
-T02. Publication awaits the owner's `npm publish` from their own terminal.
+None.
