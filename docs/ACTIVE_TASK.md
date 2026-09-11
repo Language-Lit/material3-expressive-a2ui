@@ -163,6 +163,15 @@ the registry version. Expected files: `README.md`, `package.json` and
   description, homepage and topics now match the AG-UI companion's.
 - The design system's documentation site switched from the packed tarball
   to the registry version; that repository records the switch as its T64.
+- Ecosystem listing and announcement, both posted by the owner on
+  2026-09-12 after reviewing prepared text: pull request
+  [a2ui-project/a2ui#2629](https://github.com/a2ui-project/a2ui/pull/2629)
+  adds the renderer to `docs/public/ecosystem/renderers.md` (Community
+  Renderers row and a Highlights paragraph, formatted with the project's
+  Prettier config), and discussion
+  [a2ui-project/a2ui#2628](https://github.com/a2ui-project/a2ui/discussions/2628)
+  announces it in "Show and tell". The listing takes effect when the
+  maintainers merge the pull request.
 
 ## Current task
 
