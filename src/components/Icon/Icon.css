@@ -1,0 +1,17 @@
+.m3e-a2ui-icon {
+  flex: none;
+}
+
+.m3e-a2ui-icon--custom {
+  display: inline-block;
+  inline-size: 24px;
+  block-size: 24px;
+  fill: currentColor;
+}
+
+.m3e-a2ui-icon--image {
+  display: inline-block;
+  inline-size: 24px;
+  block-size: 24px;
+  object-fit: contain;
+}

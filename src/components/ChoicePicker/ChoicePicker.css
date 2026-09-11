@@ -1,0 +1,33 @@
+.m3e-a2ui-choice-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-inline-size: 0;
+}
+
+.m3e-a2ui-choice-picker__label {
+  color: var(--m3e-sys-color-on-surface-variant);
+}
+
+.m3e-a2ui-choice-picker__filter {
+  inline-size: 100%;
+}
+
+.m3e-a2ui-choice-picker__options {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.m3e-a2ui-choice-picker--chips .m3e-a2ui-choice-picker__options {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.m3e-a2ui-choice-picker__option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}

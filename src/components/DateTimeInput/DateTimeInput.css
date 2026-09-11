@@ -1,0 +1,46 @@
+.m3e-a2ui-datetime {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-inline-size: 0;
+}
+
+.m3e-a2ui-datetime__label {
+  color: var(--m3e-sys-color-on-surface-variant);
+  padding-inline: 4px;
+}
+
+.m3e-a2ui-datetime__input {
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-block-size: 56px;
+  padding: 0 16px;
+  border: 1px solid var(--m3e-sys-color-outline);
+  border-radius: var(--m3e-sys-shape-corner-extra-small);
+  background: transparent;
+  color: var(--m3e-sys-color-on-surface);
+  font-family: var(--m3e-sys-typescale-baseline-body-large-font-family);
+  font-size: var(--m3e-sys-typescale-baseline-body-large-font-size);
+  font-weight: var(--m3e-sys-typescale-baseline-body-large-font-weight);
+  line-height: var(--m3e-sys-typescale-baseline-body-large-line-height);
+  letter-spacing: var(--m3e-sys-typescale-baseline-body-large-letter-spacing);
+  transition: border-color var(--m3e-sys-motion-standard-fast-effects-duration) var(--m3e-sys-motion-standard-fast-effects-easing);
+}
+
+.m3e-a2ui-datetime__input:hover {
+  border-color: var(--m3e-sys-color-on-surface);
+}
+
+.m3e-a2ui-datetime__input:focus-visible {
+  outline: 2px solid var(--m3e-sys-color-primary);
+  outline-offset: -1px;
+  border-color: var(--m3e-sys-color-primary);
+}
+
+.m3e-a2ui-datetime--error .m3e-a2ui-datetime__input {
+  border-color: var(--m3e-sys-color-error);
+}
+
+.m3e-a2ui-datetime--error .m3e-a2ui-datetime__label {
+  color: var(--m3e-sys-color-error);
+}

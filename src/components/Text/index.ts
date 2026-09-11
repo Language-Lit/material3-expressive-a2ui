@@ -1,0 +1,1 @@
+export { TextImplementation } from './Text'

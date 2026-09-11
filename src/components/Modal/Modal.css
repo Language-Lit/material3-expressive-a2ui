@@ -1,0 +1,14 @@
+.m3e-a2ui-modal {
+  display: contents;
+}
+
+.m3e-a2ui-modal__trigger {
+  display: contents;
+}
+
+.m3e-a2ui-modal__content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-inline-size: 0;
+}

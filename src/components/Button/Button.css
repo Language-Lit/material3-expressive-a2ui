@@ -1,0 +1,18 @@
+.m3e-a2ui-button {
+  flex: none;
+}
+
+/* A button's child is usually a catalog Text (sometimes a Row of Icon and
+   Text). Inside the button it takes the button's label typography and colour
+   so the label reads as one control. */
+.m3e-a2ui-button .m3e-a2ui-text {
+  font: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+  color: inherit;
+  margin: 0;
+}
+
+.m3e-a2ui-button .m3e-a2ui-row {
+  align-items: center;
+}

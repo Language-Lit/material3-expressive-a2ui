@@ -1,0 +1,68 @@
+.m3e-a2ui-image {
+  display: block;
+  max-inline-size: 100%;
+  border-radius: var(--m3e-sys-shape-corner-medium);
+}
+
+.m3e-a2ui-image--icon {
+  inline-size: 24px;
+  block-size: 24px;
+  border-radius: var(--m3e-sys-shape-corner-none);
+}
+
+.m3e-a2ui-image--avatar {
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: var(--m3e-sys-shape-corner-full);
+  object-fit: cover;
+}
+
+.m3e-a2ui-image--small-feature {
+  max-inline-size: 100px;
+}
+
+.m3e-a2ui-image--large-feature {
+  max-block-size: 400px;
+}
+
+.m3e-a2ui-image--header {
+  inline-size: 100%;
+  block-size: 200px;
+  object-fit: cover;
+  border-radius: var(--m3e-sys-shape-corner-large);
+}
+
+.m3e-a2ui-image--fit-contain {
+  object-fit: contain;
+}
+
+.m3e-a2ui-image--fit-cover {
+  object-fit: cover;
+}
+
+.m3e-a2ui-image--fit-fill {
+  object-fit: fill;
+}
+
+.m3e-a2ui-image--fit-none {
+  object-fit: none;
+}
+
+.m3e-a2ui-image--fit-scale-down {
+  object-fit: scale-down;
+}
+
+.m3e-a2ui-image--header.m3e-a2ui-image--fit-fill,
+.m3e-a2ui-image--avatar.m3e-a2ui-image--fit-fill {
+  object-fit: cover;
+}
+
+/*
+ * A Row or Column set to `stretch` (the catalog default) would scale an
+ * intrinsically sized image to the parent's full width or height. Images keep
+ * their own size, capped at the parent's width; only `header` spans it.
+ */
+.m3e-a2ui-row--align-stretch > .m3e-a2ui-image:not(.m3e-a2ui-image--header),
+.m3e-a2ui-column--align-stretch > .m3e-a2ui-image:not(.m3e-a2ui-image--header) {
+  align-self: flex-start;
+}

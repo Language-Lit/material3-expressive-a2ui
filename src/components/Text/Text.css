@@ -1,0 +1,41 @@
+.m3e-a2ui-text {
+  margin: 0;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.m3e-a2ui-text--caption {
+  color: var(--m3e-sys-color-on-surface-variant);
+}
+
+.m3e-a2ui-text--rich {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.m3e-a2ui-text__heading,
+.m3e-a2ui-text__paragraph {
+  margin: 0;
+}
+
+.m3e-a2ui-text__list {
+  margin: 0;
+  padding-inline-start: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.m3e-a2ui-text__link {
+  color: var(--m3e-sys-color-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.m3e-a2ui-text__code {
+  font-family: inherit;
+  padding: 0 4px;
+  border-radius: var(--m3e-sys-shape-corner-extra-small);
+  background: var(--m3e-sys-color-surface-container-high);
+}

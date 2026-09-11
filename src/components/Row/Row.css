@@ -1,0 +1,50 @@
+.m3e-a2ui-row {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  min-inline-size: 0;
+}
+
+.m3e-a2ui-row--justify-start {
+  justify-content: flex-start;
+}
+
+.m3e-a2ui-row--justify-center {
+  justify-content: center;
+}
+
+.m3e-a2ui-row--justify-end {
+  justify-content: flex-end;
+}
+
+.m3e-a2ui-row--justify-space-around {
+  justify-content: space-around;
+}
+
+.m3e-a2ui-row--justify-space-between {
+  justify-content: space-between;
+}
+
+.m3e-a2ui-row--justify-space-evenly {
+  justify-content: space-evenly;
+}
+
+.m3e-a2ui-row--justify-stretch > * {
+  flex: 1 1 0;
+}
+
+.m3e-a2ui-row--align-start {
+  align-items: flex-start;
+}
+
+.m3e-a2ui-row--align-center {
+  align-items: center;
+}
+
+.m3e-a2ui-row--align-end {
+  align-items: flex-end;
+}
+
+.m3e-a2ui-row--align-stretch {
+  align-items: stretch;
+}

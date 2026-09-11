@@ -1,0 +1,1 @@
+export { TabsImplementation } from './Tabs'

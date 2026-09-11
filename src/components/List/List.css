@@ -1,0 +1,41 @@
+.m3e-a2ui-list {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  min-inline-size: 0;
+}
+
+.m3e-a2ui-list--vertical {
+  flex-direction: column;
+}
+
+.m3e-a2ui-list--horizontal {
+  flex-direction: row;
+  overflow-x: auto;
+}
+
+.m3e-a2ui-list--ordered,
+.m3e-a2ui-list--unordered {
+  padding-inline-start: 24px;
+}
+
+.m3e-a2ui-list--align-start {
+  align-items: flex-start;
+}
+
+.m3e-a2ui-list--align-center {
+  align-items: center;
+}
+
+.m3e-a2ui-list--align-end {
+  align-items: flex-end;
+}
+
+.m3e-a2ui-list--align-stretch {
+  align-items: stretch;
+}
+
+.m3e-a2ui-list__item {
+  min-inline-size: 0;
+}

@@ -1,0 +1,11 @@
+.m3e-a2ui-card {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 16px;
+  min-inline-size: 0;
+}
+
+.m3e-a2ui-card > * {
+  min-inline-size: 0;
+}

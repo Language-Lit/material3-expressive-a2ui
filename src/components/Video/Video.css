@@ -1,0 +1,12 @@
+.m3e-a2ui-video {
+  inline-size: 100%;
+  border-radius: var(--m3e-sys-shape-corner-large);
+  overflow: hidden;
+  background: var(--m3e-sys-color-surface-container-highest);
+}
+
+.m3e-a2ui-video__media {
+  display: block;
+  inline-size: 100%;
+  max-block-size: 400px;
+}

@@ -1,0 +1,88 @@
+/* Playground chrome only. Not part of the package. */
+html,
+body,
+#root {
+  block-size: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--m3e-sys-color-surface-container-lowest);
+  color: var(--m3e-sys-color-on-surface);
+}
+
+.pg-shell {
+  display: flex;
+  flex-direction: column;
+  block-size: 100%;
+  max-inline-size: 1100px;
+  margin-inline: auto;
+}
+
+.pg-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+}
+
+.pg-bar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.pg-select {
+  min-inline-size: 260px;
+}
+
+.pg-body {
+  flex: 1;
+  min-block-size: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+  gap: 8px;
+  padding: 0 8px 8px;
+}
+
+@media (max-width: 760px) {
+  .pg-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.pg-stage,
+.pg-log {
+  box-sizing: border-box;
+  overflow: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pg-stage__description {
+  margin: 0;
+  color: var(--m3e-sys-color-on-surface-variant);
+}
+
+.pg-surface {
+  max-inline-size: 560px;
+}
+
+.pg-log__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  word-break: break-word;
+}
+
+.pg-log__error {
+  color: var(--m3e-sys-color-error);
+}

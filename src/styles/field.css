@@ -1,0 +1,4 @@
+/* Shared by the input components: the supporting-text colour for a failed check. */
+.m3e-a2ui-field-error {
+  color: var(--m3e-sys-color-error);
+}

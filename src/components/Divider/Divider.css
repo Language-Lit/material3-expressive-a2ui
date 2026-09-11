@@ -1,0 +1,8 @@
+.m3e-a2ui-divider {
+  flex: none;
+  margin: 0;
+}
+
+.m3e-a2ui-divider--vertical {
+  align-self: stretch;
+}

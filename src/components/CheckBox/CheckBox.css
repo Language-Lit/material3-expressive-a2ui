@@ -1,0 +1,17 @@
+.m3e-a2ui-checkbox {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-inline-size: 0;
+}
+
+.m3e-a2ui-checkbox__control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.m3e-a2ui-checkbox__label {
+  min-inline-size: 0;
+}

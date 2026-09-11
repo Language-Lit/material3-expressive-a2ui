@@ -1,0 +1,23 @@
+.m3e-a2ui-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.m3e-a2ui-slider__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.m3e-a2ui-slider__label {
+  color: var(--m3e-sys-color-on-surface-variant);
+}
+
+.m3e-a2ui-slider__value {
+  color: var(--m3e-sys-color-primary);
+  font-variant-numeric: tabular-nums;
+}
