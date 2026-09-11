@@ -16,6 +16,10 @@ your app.
 Published as `@language-lit/material3-expressive-a2ui`. This is an
 independent community implementation; it is not affiliated with Google.
 
+[![Material 3 Expressive A2UI playground rendering a Reserve a table form with name, email, date, seating chips, a guests slider and a checked confirmation, plus the reserve action the agent received](docs/assets/a2ui-preview.webp)](https://m3e.language-lit.com/a2ui/)
+
+*Binding, validation and actions in the scripted playground. [Try the demo](https://m3e.language-lit.com/a2ui/).*
+
 ## What you get
 
 - **The whole basic catalog.** All eighteen components of A2UI v0.9.1's

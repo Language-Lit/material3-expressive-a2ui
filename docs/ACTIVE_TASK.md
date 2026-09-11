@@ -178,6 +178,53 @@ the registry version. Expected files: `README.md`, `package.json` and
   trailer and force-pushed with the identical diff. Commits in these
   repositories never list the assistant as a co-author.
 
+## T03 — README preview still and demo video
+
+Status: complete
+Approved: 2026-09-12 (owner: "About video and screenshot, guide me, I'll
+record it, and you edit and optimize for web." then "Ok, 3": the assistant
+records the playground itself with Playwright.)
+Completed: 2026-09-12
+
+### Scope and expected files
+
+Give the README a still of the playground that links to the live demo, the
+way the AG-UI companion's README does, and produce a short demo video of
+the playground for the A2UI ecosystem announcement. Expected files:
+`README.md`, `docs/assets/a2ui-preview.webp` and `docs/ACTIVE_TASK.md`.
+The video files live outside the repository; they are attachments for the
+announcement thread, not package or repository contents.
+
+### Acceptance checks
+
+1. The README shows the still directly under the intro links and the still
+   links to `https://m3e.language-lit.com/a2ui/`.
+2. The still is a WebP under 50 kB rendered from the production site build
+   at 2x device pixels and downscaled to 1120 px wide, in light mode.
+3. The video is 1120 px wide, 30 fps, H.264 MP4 and VP9 WebM, each under
+   1 MB, with a WebP poster, matching the AG-UI demo media.
+4. `package.json` `files` still lists only `dist`, so the asset never
+   enters the tarball.
+
+### Verification record
+
+- Recorded with Playwright's Chromium from the site's static export served
+  locally: 2240 by 2720 viewport at device scale 1 with the document zoomed
+  2x, light scheme, a synthetic pointer drawn in the top layer, scenario 2
+  (fill the form, pick Counter and 4 guests, press Reserve) followed by
+  scenario 3 (Evening tab, open the booking dialog, dismiss it).
+- `docs/assets/a2ui-preview.webp`: 1120 by 1430, 46.2 kB, an element
+  screenshot of the demo after the reserve action, showing the filled form
+  and the action the agent received.
+- Video encoded with ffmpeg 7.1 from the raw screencast, cropped to the
+  demo and downscaled with Lanczos: `a2ui-demo.mp4` (H.264, 1120 by 1332,
+  30 fps, 27.8 s, 946 kB) and `a2ui-demo.webm` (VP9, 975 kB), poster
+  `a2ui-poster.webp` (40.7 kB). Kept in the owner's `Desktop/m3e-web`
+  folder next to the AG-UI media; the owner attaches the MP4 to
+  `a2ui-project/a2ui` discussion #2628.
+- `files` in `package.json` is unchanged, so the tarball still carries
+  only `dist`.
+
 ## Current task
 
 None.
