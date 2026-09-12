@@ -202,7 +202,7 @@ checks the dispatched action. Note that `@a2ui/react` itself requires React
 
 | A2UI component | Material 3 Expressive | Notes |
 | --- | --- | --- |
-| `Text` | `Text` | h1–h5 → headline/title roles; `caption` small and muted; `body` reading size. Markdown: bold, italic, code, links, headings, lists. |
+| `Text` | `Text` | h1–h5 → headline/title roles; `caption` small and muted; `body` reading size. Markdown: bold, italic, code, links, headings, lists, nested lists, pipe tables. |
 | `Image` | image with variant sizing | `icon`, `avatar` (round), `smallFeature`, `mediumFeature`, `largeFeature`, `header` (full width). |
 | `Icon` | `Icon` | catalog names as embedded glyphs, no font needed; `svgPath` inline. |
 | `Video` / `AudioPlayer` | native players with controls | `posterUrl` (v1.0) shows a poster. |
@@ -242,9 +242,10 @@ token, so surfaces follow your theme in light and dark at any density.
 - **Icons:** names outside the catalog's list (and the few Material Symbols
   names the specification's examples use) fall back to a Material Symbols
   ligature, which renders only if your app loads that font.
-- **Markdown:** a safe subset rendered to React nodes. No tables, images,
-  raw HTML or nested lists. Links open for `http`, `https`, `mailto` and
-  `tel` only.
+- **Markdown:** a safe subset rendered to React nodes: headings, paragraphs,
+  lists and nested lists, pipe tables, bold, italic, code and links. No
+  images or raw HTML. Links open for `http`, `https`, `mailto` and `tel`
+  only.
 - **`openUrl`:** runs only from a user-initiated action, such as a `Button`
   click. A call an agent puts in a `Text` expression, a bound property or a
   value a data update re-evaluates is refused and reported through
@@ -301,6 +302,7 @@ so what you see is the source.
 - [ADR 0003](docs/adr/0003-rendering-decisions.md) — icons, Markdown, the date input, `primaryColor`
 - [ADR 0004](docs/adr/0004-forward-compatible-properties.md) — the three v1.0 properties accepted ahead of a v1.0 runtime
 - [ADR 0005](docs/adr/0005-user-initiated-open-url.md) — `openUrl` runs only from a user-initiated action
+- [ADR 0006](docs/adr/0006-markdown-tables-and-nested-lists.md) — Markdown tables and nested lists
 
 ## License
 

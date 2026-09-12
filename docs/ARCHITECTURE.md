@@ -146,7 +146,7 @@ Each component is a directory of `<Name>.tsx`, `<Name>.css`, and `index.ts`:
 
 | A2UI component | Renders | Notes |
 | --- | --- | --- |
-| `Text` | `Text` as `h1`–`h5`, `p`, or `span` | h1 headline-large … h5 title-medium; caption body-small in the variant colour; body body-large. Markdown subset; block Markdown only for `body`. |
+| `Text` | `Text` as `h1`–`h5`, `p`, or `span` | h1 headline-large … h5 title-medium; caption body-small in the variant colour; body body-large. Markdown subset (ADR 0003, ADR 0006: nested lists, pipe tables); block Markdown only for `body`. |
 | `Image` | `<img>` with variant and fit classes | `icon` 24px, `avatar` 40px round, `header` full-width 200px; other variants intrinsic size, never stretched by the parent. |
 | `Icon` | `Icon` with an embedded glyph | `svgPath` inline; `{ path }` as `<img>`; names outside the embedded set fall back to a ligature. `accessibility.label` makes it non-decorative. |
 | `Video` | native `<video controls>` | `posterUrl` → `poster` (v1.0, ADR 0004). |

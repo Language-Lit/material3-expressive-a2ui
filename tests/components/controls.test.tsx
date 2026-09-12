@@ -262,6 +262,39 @@ describe('Text', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Invitation Builder' })).toBeDefined()
     expect(screen.getByRole('heading', { level: 3, name: 'Details with emphasis' })).toBeDefined()
   })
+
+  it('renders nested Markdown lists as lists inside list items', () => {
+    const { container } = renderSurface([
+      message.createSurface(SURFACE),
+      message.updateComponents(SURFACE, [
+        { id: 'root', component: 'Text', text: 'Pack:\n- Fruit\n  - **Apple**\n  - Pear\n- Bread' },
+      ]),
+    ])
+    const outer = container.querySelector('.m3e-a2ui-text--rich > ul')
+    expect(outer?.children).toHaveLength(2)
+    const nested = outer?.querySelector('li > ul')
+    expect(nested?.querySelectorAll('li')).toHaveLength(2)
+    expect(nested?.querySelector('strong')?.textContent).toBe('Apple')
+  })
+
+  it('renders a Markdown pipe table with column headers and alignment', () => {
+    const { container } = renderSurface([
+      message.createSurface(SURFACE),
+      message.updateComponents(SURFACE, [
+        {
+          id: 'root',
+          component: 'Text',
+          text: 'Order\n\n| Item | Price |\n| --- | ---: |\n| Tea | 4.50 |\n| `Milk` | 1.20 |',
+        },
+      ]),
+    ])
+    expect(screen.getByRole('table')).toBeDefined()
+    expect(screen.getAllByRole('columnheader').map((cell) => cell.textContent)).toEqual(['Item', 'Price'])
+    expect(screen.getAllByRole('row')).toHaveLength(3)
+    expect(screen.getByRole('columnheader', { name: 'Price' }).className).toContain('m3e-a2ui-text__cell--right')
+    expect(container.querySelector('td code')?.textContent).toBe('Milk')
+    expect(container.querySelector('.m3e-a2ui-text__table-scroller table')).not.toBeNull()
+  })
 })
 
 describe('forward-compatible v1.0 properties', () => {

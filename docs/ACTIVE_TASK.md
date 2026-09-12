@@ -418,6 +418,51 @@ it, and the swap into every catalog the package builds. Expected files:
 - jsdom has no `navigator.userActivation`; the browser check is exercised
   by defining one on `navigator` for a single test.
 
+## T08 — Markdown tables and nested lists
+
+Status: complete
+Approved: 2026-09-12 (owner: "Ok, let's do them all")
+Completed: 2026-09-12
+
+### Scope and expected files
+
+ADR 0003 left tables and nested lists out of the Markdown subset pending an
+ADR. Add both: GitHub-flavoured pipe tables rendered as a native `<table>`
+inside a scroller, and list items indented under an open list item
+rendered as nested lists, with the ADR 0003 rule that an indented marker
+outside a list stays text. Images and raw HTML stay out. Expected files:
+`src/internal/markdown.tsx`, `src/components/Text/Text.tsx`,
+`src/components/Text/Text.css`, `tests/internal/markdown.test.ts` (new),
+`tests/components/controls.test.tsx`,
+`docs/adr/0006-markdown-tables-and-nested-lists.md` (new),
+`docs/adr/0003-rendering-decisions.md`, `README.md`, `docs/SPEC.md`,
+`docs/ARCHITECTURE.md`, `docs/ACTIVE_TASK.md`.
+
+### Acceptance checks
+
+1. `npm run verify` passes, including the token-only CSS check on the new
+   table rules.
+2. A two-level and a three-level nested list parse to nested `children`
+   and render as `ul > li > ul`; an ordered list nests under an unordered
+   item; ` - Qty: 3` outside a list stays a paragraph.
+3. A pipe table parses with alignment from the delimiter row, `\|` as a
+   literal pipe, short rows padded; a header and delimiter row of different
+   widths stay text; a line without a pipe ends the table.
+4. The rendered table has `columnheader` cells, an alignment class on the
+   right-aligned column and inline Markdown inside cells.
+
+### Verification record
+
+- `npm run verify` green: typecheck, 114 tests in 8 files, build,
+  namespace guard and package inspection.
+- The table ends at a line without a pipe, as markdown-it (the official
+  renderer's parser) does, rather than swallowing the paragraph after it
+  as GitHub's reference implementation would.
+- The design system ships no table component, and the verifier's native
+  element rule covers controls only, so a `<table>` with `<th scope="col">`
+  is the right element; colours come from `--m3e-sys-color-outline-variant`
+  and `--m3e-sys-color-surface-container`.
+
 ## Current task
 
 None.

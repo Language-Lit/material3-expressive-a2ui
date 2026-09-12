@@ -221,9 +221,13 @@ scope until web_core ships an entry for it.
 
 Agent text is untrusted. It MUST be rendered to React nodes, never to HTML;
 `dangerouslySetInnerHTML` is forbidden and the verifier checks for it.
-Markdown is the subset in [ADR 0003](adr/0003-rendering-decisions.md): links
-render only for `http`, `https`, `mailto`, and `tel`, and open in a new tab
-with `rel="noreferrer noopener"`.
+Markdown is the subset in [ADR 0003](adr/0003-rendering-decisions.md) plus
+the nested lists and pipe tables of
+[ADR 0006](adr/0006-markdown-tables-and-nested-lists.md): links render only
+for `http`, `https`, `mailto`, and `tel`, and open in a new tab with
+`rel="noreferrer noopener"`; a table renders as a native `<table>` with
+column headers inside a horizontal scroller; images and raw HTML are not
+rendered.
 
 ### 4.2 Icons
 

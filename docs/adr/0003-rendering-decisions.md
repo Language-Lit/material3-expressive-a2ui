@@ -39,8 +39,10 @@ so a caption such as ` - Qty: 3` stays inline.
 Block Markdown renders only for the `body` variant, where a document is
 plausible. Heading and caption variants render inline Markdown and drop a
 redundant leading `#` marker, since the variant already sets the level.
-Tables, images, raw HTML and nested lists are out of scope; adding any of
-them needs an ADR, because each widens the untrusted-input surface.
+Images and raw HTML are out of scope; adding either needs an ADR, because
+each widens the untrusted-input surface. Tables and nested lists, excluded
+here at first, were added by
+[ADR 0006](0006-markdown-tables-and-nested-lists.md).
 
 ## `DateTimeInput` renders a native input
 

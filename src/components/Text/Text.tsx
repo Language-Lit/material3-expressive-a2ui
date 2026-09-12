@@ -9,7 +9,9 @@ import {
   parseMarkdownBlocks,
   renderInline,
   renderParagraph,
+  type MarkdownAlign,
   type MarkdownBlock,
+  type MarkdownList,
 } from '../../internal/markdown'
 import { createMaterial3Component } from '../../runtime/adapter'
 
@@ -84,6 +86,27 @@ function BlockText({ as, ...rest }: BlockTextProps) {
   }
 }
 
+/** A list and, under any item that has one, its nested list (ADR 0006). */
+function ListBlock({ list }: { readonly list: MarkdownList }) {
+  const items = list.items.map((item, index) => (
+    <li key={index}>
+      <MaterialText as="span" variant="bodyLarge">
+        {renderInline(item.text)}
+      </MaterialText>
+      {item.children ? <ListBlock list={item.children} /> : null}
+    </li>
+  ))
+  return list.ordered ? (
+    <ol className="m3e-a2ui-text__list">{items}</ol>
+  ) : (
+    <ul className="m3e-a2ui-text__list">{items}</ul>
+  )
+}
+
+function cellClassName(align: MarkdownAlign): string | undefined {
+  return align ? `m3e-a2ui-text__cell--${align}` : undefined
+}
+
 function Block({ block }: { readonly block: MarkdownBlock }) {
   if (block.kind === 'heading') {
     const mapping = MARKDOWN_HEADINGS[block.level - 1] ?? MARKDOWN_HEADINGS[5]!
@@ -94,17 +117,40 @@ function Block({ block }: { readonly block: MarkdownBlock }) {
     )
   }
   if (block.kind === 'list') {
-    const items = block.items.map((item, index) => (
-      <li key={index}>
-        <MaterialText as="span" variant="bodyLarge">
-          {renderInline(item)}
-        </MaterialText>
-      </li>
-    ))
-    return block.ordered ? (
-      <ol className="m3e-a2ui-text__list">{items}</ol>
-    ) : (
-      <ul className="m3e-a2ui-text__list">{items}</ul>
+    return <ListBlock list={block} />
+  }
+  if (block.kind === 'table') {
+    // A pipe table is the one Markdown block with its own width. It scrolls
+    // inside the text rather than widening the surface (ADR 0006).
+    return (
+      <div className="m3e-a2ui-text__table-scroller">
+        <table className="m3e-a2ui-text__table">
+          <thead>
+            <tr>
+              {block.header.map((cell, index) => (
+                <th key={index} scope="col" className={cellClassName(block.align[index])}>
+                  <MaterialText as="span" variant="labelLarge">
+                    {renderInline(cell)}
+                  </MaterialText>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {block.rows.map((row, rowIndex) => (
+              <tr key={rowIndex}>
+                {row.map((cell, index) => (
+                  <td key={index} className={cellClassName(block.align[index])}>
+                    <MaterialText as="span" variant="bodyMedium">
+                      {renderInline(cell)}
+                    </MaterialText>
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     )
   }
   return (
