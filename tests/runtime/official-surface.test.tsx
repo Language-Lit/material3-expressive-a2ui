@@ -6,7 +6,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 
 import { message } from '../../fixtures/messages'
-import { material3Catalog } from '../../src'
+import { material3Catalog, material3ExtendedCatalog, MATERIAL_CATALOG_ID } from '../../src'
 
 /**
  * The catalog is written to the render-only contract Google's own React
@@ -68,4 +68,19 @@ describe('material3Catalog under the official @a2ui/react surface', () => {
       context: { name: 'Grace' },
     })
   })
+})
+
+it('renders a bound Material extension under the official surface', async () => {
+  const processor = new MessageProcessor<ReactComponentImplementation>([material3ExtendedCatalog])
+  processor.processMessages([
+    message.createSurface('extended-official', { catalogId: MATERIAL_CATALOG_ID }),
+    message.updateDataModel('extended-official', { enabled: false }),
+    message.updateComponents('extended-official', [
+      { id: 'root', component: 'Switch', label: 'Enable alerts', value: { path: '/enabled' } },
+    ]),
+  ])
+  const surface = processor.model.surfacesMap.get('extended-official')!
+  render(<Material3Provider><OfficialSurface surface={surface} /></Material3Provider>)
+  await userEvent.click(screen.getByRole('switch', { name: 'Enable alerts' }))
+  expect(surface.dataModel.get('/enabled')).toBe(true)
 })

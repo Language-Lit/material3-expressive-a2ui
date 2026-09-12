@@ -32,7 +32,8 @@ In scope: a Material 3 implementation of every component in the basic catalog
 `Catalog` that carries them together with the specification's functions, the
 minimal catalog
 (`https://a2ui.org/specification/v0_9/catalogs/minimal/catalog.json`) built
-from the same implementations plus its `capitalize` function, a surface
+from the same implementations plus its `capitalize` function, a package-owned
+Material extension catalog (ADR 0007), a surface
 component that renders a `SurfaceModel`, and a hook that owns a
 `MessageProcessor` for a component's lifetime.
 
@@ -95,7 +96,9 @@ ADR.
     registration order;
   - `CapitalizeImplementation` and `OpenUrlImplementation`, the package's
     own function implementations;
-  - the eighteen `<Name>Implementation` objects;
+  - `MATERIAL_CATALOG_ID`, `material3ExtendedCatalog`,
+    `material3ExtendedComponents` (the nine additional implementations);
+  - the eighteen basic and nine Material `<Name>Implementation` objects;
   - `createMaterial3Component` and the `Material3ComponentImplementation`,
     `A2uiHostProps`, `A2uiRenderProps`, `BuildChild`, `ResolvedProps` types;
   - `A2UI_ICON_NAMES`, `MATERIAL_SYMBOL_NAMES`, `toMaterialSymbol`.
@@ -121,8 +124,8 @@ The package targets A2UI **v0.9.1** through web_core `^0.10.7 || ^0.11.0`.
 The suite MUST pass at the range's floor as well as at the version the
 lockfile pins, so a consumer on either minor gets the same behaviour.
 `useA2ui` defaults the processor to `v0.9.1` and MAY be told `v0.9`. The
-processor registers the specification's basic and minimal catalogs under
-their own ids by default, so an agent that announces either in
+processor registers the basic, minimal and Material extension catalogs under
+their own ids by default, so an agent that announces any of them in
 `createSurface` is accepted without configuration.
 
 ## 3. Architecture
@@ -178,7 +181,7 @@ It MUST:
 
 `useA2ui(options)` creates one `MessageProcessor` per mounted component with
 the given catalogs (default: `material3Catalogs`, the basic catalog followed
-by the minimal one), exposes live surfaces as a
+by the minimal and Material extension catalogs), exposes live surfaces as a
 tear-free snapshot, forwards actions to `onAction`, forwards processor and
 surface errors to `onError`, and returns `processMessages`,
 `getClientCapabilities`, `getClientDataModel`, and `clear`. It MUST delete
@@ -210,10 +213,34 @@ v1.0 candidate catalog adds — `posterUrl` on `Video`, `placeholder` on
 `TextField`, `steps` on `Slider` — with v1.0's descriptions and semantics,
 and MUST advertise them in the inline catalog
 ([ADR 0004](adr/0004-forward-compatible-properties.md)). No other property
-beyond web_core's own component schemas MAY be added, and a test MUST
+beyond web_core's own basic component schemas MAY be added to the basic
+implementations, and a test MUST
 compare the inline schemas against web_core's to enforce that. The v1.0
 protocol (new components, `live`, `hidden`, message renames) is out of
 scope until web_core ships an entry for it.
+
+### 3.6 Material extension catalog
+
+`material3ExtendedCatalog` MUST reuse every basic implementation and the
+basic functions, including guarded `openUrl`, and add exactly `Switch`,
+`Select`, `IconButton`, `Chip`, `ListItem`, `Progress`, `Carousel`,
+`SegmentedButtons` and `Tooltip` under `MATERIAL_CATALOG_ID`:
+`https://m3e.language-lit.com/a2ui/catalogs/material3/catalog.json`.
+The basic and minimal catalogs MUST NOT gain these components.
+
+The extension is registered third by default. Its schema MUST be advertised
+through `getClientCapabilities({ includeInlineCatalogs: true })`; this
+package does not host or fetch the catalog URL. Schemas MUST be composed
+from web_core's public schemas, preserving canonical reference metadata.
+The property contract and deliberately limited peer component modes are
+recorded in [ADR 0007](adr/0007-material-extension-catalog.md).
+
+Inputs use web_core's generated setters for bound values and remain locally
+editable for literals. Switch, Select and SegmentedButtons expose failed
+checks after interaction. IconButton, Chip and actionable ListItem are
+disabled when checks fail. All six accept a dynamic `disabled` property.
+Tooltip MUST attach to the native control in its child, including when it
+arrives later; it MUST NOT add focus or activation semantics to a wrapper.
 
 ## 4. Rendering rules
 

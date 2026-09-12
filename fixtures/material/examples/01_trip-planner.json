@@ -1,0 +1,292 @@
+{
+  "name": "Trip planner",
+  "description": "Nine Material additions with bound preferences, actions, progress and a templated carousel.",
+  "messages": [
+    {
+      "version": "v0.9",
+      "createSurface": {
+        "surfaceId": "material-demo",
+        "catalogId": "https://m3e.language-lit.com/a2ui/catalogs/material3/catalog.json"
+      }
+    },
+    {
+      "version": "v0.9",
+      "updateDataModel": {
+        "surfaceId": "material-demo",
+        "value": {
+          "notifications": true,
+          "plan": "relaxed",
+          "days": [
+            "weekend"
+          ],
+          "favorite": false,
+          "progress": 0.65,
+          "destinations": [
+            {
+              "name": "Kyoto",
+              "description": "Quiet gardens and ancient temples."
+            },
+            {
+              "name": "Lisbon",
+              "description": "Hillside streets and Atlantic sunsets."
+            },
+            {
+              "name": "Vancouver",
+              "description": "Mountains meet the ocean."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "version": "v0.9",
+      "updateComponents": {
+        "surfaceId": "material-demo",
+        "components": [
+          {
+            "id": "root",
+            "component": "Column",
+            "children": [
+              "title",
+              "intro",
+              "notifications",
+              "plan",
+              "days",
+              "chips",
+              "progress",
+              "sync",
+              "tip",
+              "item",
+              "gallery"
+            ]
+          },
+          {
+            "id": "title",
+            "component": "Text",
+            "text": "Your next adventure",
+            "variant": "h2"
+          },
+          {
+            "id": "intro",
+            "component": "Text",
+            "text": "Plan a trip with Material controls. Your choices stay in sync as the agent updates the screen."
+          },
+          {
+            "id": "notifications",
+            "component": "Switch",
+            "label": "Trip notifications",
+            "value": {
+              "path": "/notifications"
+            }
+          },
+          {
+            "id": "plan",
+            "component": "Select",
+            "label": "Travel style",
+            "value": {
+              "path": "/plan"
+            },
+            "options": [
+              {
+                "label": "Relaxed",
+                "value": "relaxed"
+              },
+              {
+                "label": "Adventure",
+                "value": "adventure"
+              }
+            ]
+          },
+          {
+            "id": "days",
+            "component": "SegmentedButtons",
+            "label": "Trip length",
+            "options": [
+              {
+                "label": "Weekend",
+                "value": "weekend"
+              },
+              {
+                "label": "One week",
+                "value": "week"
+              }
+            ],
+            "value": {
+              "path": "/days"
+            }
+          },
+          {
+            "id": "chips",
+            "component": "Row",
+            "children": [
+              "favorite",
+              "suggestion"
+            ],
+            "align": "center"
+          },
+          {
+            "id": "favorite",
+            "component": "Chip",
+            "label": "Save trip",
+            "value": {
+              "path": "/favorite"
+            },
+            "action": {
+              "event": {
+                "name": "save_trip",
+                "context": {
+                  "notifications": {
+                    "path": "/notifications"
+                  },
+                  "plan": {
+                    "path": "/plan"
+                  },
+                  "favorite": {
+                    "path": "/favorite"
+                  },
+                  "days": {
+                    "path": "/days"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "id": "suggestion",
+            "component": "Chip",
+            "label": "Suggest a destination",
+            "action": {
+              "event": {
+                "name": "suggest_destination",
+                "context": {
+                  "notifications": {
+                    "path": "/notifications"
+                  },
+                  "plan": {
+                    "path": "/plan"
+                  },
+                  "favorite": {
+                    "path": "/favorite"
+                  },
+                  "days": {
+                    "path": "/days"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "id": "progress",
+            "component": "Progress",
+            "label": "Trip readiness",
+            "value": {
+              "path": "/progress"
+            }
+          },
+          {
+            "id": "sync",
+            "component": "Progress",
+            "label": "Finding availability",
+            "circular": true
+          },
+          {
+            "id": "tip",
+            "component": "Tooltip",
+            "child": "help",
+            "text": "Your preferences help us find a trip that fits."
+          },
+          {
+            "id": "help",
+            "component": "IconButton",
+            "label": "About trip preferences",
+            "icon": "help",
+            "action": {
+              "event": {
+                "name": "help",
+                "context": {
+                  "notifications": {
+                    "path": "/notifications"
+                  },
+                  "plan": {
+                    "path": "/plan"
+                  },
+                  "favorite": {
+                    "path": "/favorite"
+                  },
+                  "days": {
+                    "path": "/days"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "id": "item",
+            "component": "ListItem",
+            "headline": "Review your itinerary",
+            "supportingText": "See your current choices",
+            "overline": "NEXT STEP",
+            "action": {
+              "event": {
+                "name": "review",
+                "context": {
+                  "notifications": {
+                    "path": "/notifications"
+                  },
+                  "plan": {
+                    "path": "/plan"
+                  },
+                  "favorite": {
+                    "path": "/favorite"
+                  },
+                  "days": {
+                    "path": "/days"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "id": "gallery",
+            "component": "Carousel",
+            "children": {
+              "componentId": "destination",
+              "path": "/destinations"
+            },
+            "accessibility": {
+              "label": "Destinations"
+            }
+          },
+          {
+            "id": "destination",
+            "component": "Card",
+            "child": "destination-content"
+          },
+          {
+            "id": "destination-content",
+            "component": "Column",
+            "children": [
+              "destination-title",
+              "destination-description"
+            ]
+          },
+          {
+            "id": "destination-title",
+            "component": "Text",
+            "text": {
+              "path": "name"
+            },
+            "variant": "h3"
+          },
+          {
+            "id": "destination-description",
+            "component": "Text",
+            "text": {
+              "path": "description"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

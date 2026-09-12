@@ -22,6 +22,8 @@ independent community implementation; it is not affiliated with Google.
 
 ## What you get
 
+- **Material extensions.** A separate catalog adds Switch, Select, IconButton,
+  Chip, ListItem, Progress, Carousel, SegmentedButtons and Tooltip.
 - **The whole basic catalog.** All eighteen components of A2UI v0.9.1's
   basic catalog — layout, text, media, cards, tabs, modals, and every input —
   rendered with Material 3 Expressive components and tokens. The
@@ -123,6 +125,7 @@ const capabilities = a2ui.getClientCapabilities()
 // { 'v0.9.1': { supportedCatalogIds: [
 //   'https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json',
 //   'https://a2ui.org/specification/v0_9/catalogs/minimal/catalog.json',
+//   'https://m3e.language-lit.com/a2ui/catalogs/material3/catalog.json',
 // ] } }
 ```
 
@@ -173,6 +176,58 @@ this package's `OpenUrlImplementation` in it to keep `openUrl` restricted to
 user-initiated actions. A component of your own that calls `props.action()`
 from a click gets that restriction for free: the adapter wraps action
 closures before they reach `render`.
+
+### Material extension catalog
+
+The default processor also accepts `MATERIAL_CATALOG_ID`, a package-owned
+catalog containing every basic component plus nine additions:
+
+| Component | Agent properties |
+| --- | --- |
+| `Switch` | `label`, boolean `value` |
+| `Select` | `label`, string `value`, `options: [{label, value}]` |
+| `IconButton` | `label`, `icon`, `action` |
+| `Chip` | `label`, optional boolean `value` for a filter chip, optional `action` |
+| `ListItem` | `headline`, optional `overline`, `supportingText`, `action` |
+| `Progress` | `label`, optional `value`, `max` (default 1), `circular` |
+| `Carousel` | `children` (IDs or a data template), hero layout |
+| `SegmentedButtons` | `label`, `options`, string-list `value`, optional `multiple` |
+| `Tooltip` | `child` (one labelled native control), plain `text` |
+
+Scalar properties accept the usual path and function bindings. The controls
+support `disabled` and `checks`; selection writes through `value` bindings.
+The basic catalog retains its original component set.
+
+Give your agent the inline schema so it knows the additional properties:
+
+```ts
+const capabilities = a2ui.getClientCapabilities({ includeInlineCatalogs: true })
+// Send capabilities to your agent using your transport.
+```
+
+The Material ID is
+`https://m3e.language-lit.com/a2ui/catalogs/material3/catalog.json`.
+It identifies the catalog; this package does not fetch or host that URL.
+Use the inline schema rather than assuming a hosted JSON document exists.
+To register only this catalog, pass `catalogs: [material3ExtendedCatalog]`
+to `useA2ui`. To build a locale-bound version:
+
+```ts
+import {
+  MATERIAL_CATALOG_ID, material3ExtendedComponents, createMaterial3Catalog,
+} from '@language-lit/material3-expressive-a2ui'
+
+const catalog = createMaterial3Catalog({
+  id: MATERIAL_CATALOG_ID,
+  components: material3ExtendedComponents,
+  locale: 'pt-BR',
+})
+```
+
+All nine `<Name>Implementation` objects are exported from the root entry.
+The [property contract](docs/adr/0007-material-extension-catalog.md) records
+the supported modes. Try the local playground at
+`?example=material/01_trip-planner.json`.
 
 ### Use the catalog under another surface
 
@@ -232,7 +287,7 @@ token, so surfaces follow your theme in light and dark at any density.
   not used; the package keeps rendering through the render-only contract.
 - **Official surface:** the catalog is tested under `@a2ui/react` `0.11.1`,
   which is not a dependency of this package and needs React 19 itself.
-- **Catalog:** the specification's basic and minimal catalogs, by default.
+- **Catalog:** basic, minimal and the package-owned Material extension, by default.
   Other catalogs need implementations registered through
   `createMaterial3Catalog`.
 - **v1.0 ahead of time:** the three properties the v1.0 candidate catalog

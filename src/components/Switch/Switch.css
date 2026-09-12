@@ -1,0 +1,15 @@
+.m3e-a2ui-switch {
+  min-inline-size: 0;
+}
+
+.m3e-a2ui-switch {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.m3e-a2ui-switch__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}

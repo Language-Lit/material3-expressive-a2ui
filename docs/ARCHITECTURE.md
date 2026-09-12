@@ -140,7 +140,8 @@ minimal catalog defines those components with the basic catalog's
 properties, so nothing is duplicated; only `capitalize`
 (`src/catalog/functions.ts`) is new, since web_core ships no implementation
 for it. `material3Catalogs` lists both catalogs in the order `useA2ui`
-registers them, and a `createSurface` naming either id is accepted.
+registers them, followed by the Material extension catalog; a `createSurface`
+naming any of these ids is accepted.
 
 Each component is a directory of `<Name>.tsx`, `<Name>.css`, and `index.ts`:
 
@@ -202,3 +203,28 @@ The playground (`npm run playground`) streams the same examples one message
 at a time through `useA2ui` and `A2uiSurface`, with an action and error log,
 in light, dark or system colour mode. It builds from `src`, never `dist`, so
 what is on screen is the source.
+
+## Material extension catalog
+
+`material3ExtendedCatalog` is built with `createMaterial3Catalog`, supplying
+its own id and `material3ExtendedComponents` (the nine additions only).
+The basic implementations are shared by identity. The factory also supplies
+the guarded basic functions. No runtime or transport logic changes.
+
+Each addition owns its schema in its `.tsx` file. The internal
+`materialSchemas.ts` composes common properties from the basic APIs, so
+checks and accessibility use web_core's exact types. Dynamic and child
+properties retain `REF:` descriptions for inline capabilities. Binding,
+function evaluation, validation and action dispatch remain in web_core.
+
+`Tooltip` bridges the render-only `buildChild` contract to the peer's
+`anchorRef` contract by observing its own wrapper's child list. It finds the
+first native control and gives that element to the peer, which owns hover,
+focus, Escape, positioning and `aria-describedby`. The observer also handles
+late children and replacement, and disconnects on unmount. The wrapper is
+never made focusable. Tooltip text is plain non-interactive text.
+
+The package-authored trip-planner fixture lives in `fixtures/material/`,
+separate from the verbatim specification fixtures. Its carousel expands a
+web_core child template, and its controls share bound values with action
+contexts. See ADR 0007 for the extension's property contract.

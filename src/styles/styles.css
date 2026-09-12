@@ -21,3 +21,12 @@
 @import '../components/Text/Text.css';
 @import '../components/TextField/TextField.css';
 @import '../components/Video/Video.css';
+@import '../components/Switch/Switch.css';
+@import '../components/Select/Select.css';
+@import '../components/IconButton/IconButton.css';
+@import '../components/Chip/Chip.css';
+@import '../components/ListItem/ListItem.css';
+@import '../components/Progress/Progress.css';
+@import '../components/Carousel/Carousel.css';
+@import '../components/SegmentedButtons/SegmentedButtons.css';
+@import '../components/Tooltip/Tooltip.css';

@@ -463,6 +463,64 @@ outside a list stays text. Images and raw HTML stay out. Expected files:
   is the right element; colours come from `--m3e-sys-color-outline-variant`
   and `--m3e-sys-color-surface-container`.
 
+## T09 — Material extension catalog
+
+Status: complete
+Approved: 2026-09-12 (owner: "Can you implement it?", continuing the
+approved Material extension catalog from session 6374035a)
+Completed: 2026-09-12
+
+### Scope and expected files
+
+Add Switch, Select, IconButton, Chip, ListItem, Progress, Carousel,
+SegmentedButtons and Tooltip as render-only wrappers around the peer's
+components. Register a separate Material catalog containing the basic
+components plus these nine, after the basic and minimal catalogs. Reuse
+web_core schemas, binding, checks and actions. Export the catalog and
+implementations from the existing root entry.
+
+Expected files: nine directories in `src/components/`, component/catalog
+barrels, `src/styles/styles.css`, `fixtures/material/`, playground example
+registration, protocol and compatibility tests, package verifier,
+`README.md`, `docs/SPEC.md`, `docs/ARCHITECTURE.md`, ADR 0007 and this file.
+
+### Acceptance checks
+
+1. `npm run verify` and `npm run playground:build` pass.
+2. The Material catalog advertises exactly the basic components plus the
+   nine additions, their binding schemas and guarded basic functions.
+3. Real protocol tests cover two-way values, data updates, action context,
+   checks, templates, incremental children and official-surface rendering.
+4. Inspect the example in light and dark modes and exercise its controls.
+5. Verify the suite at the supported web_core floor in an isolated copy.
+
+### Verification record
+
+- `npm run verify`: typecheck, 131 tests in 10 files, build, CSS namespace
+  guard and package checks pass. The verifier now inspects the built
+  catalogs and exports, including exact basic/minimal coverage and the
+  nine Material additions.
+- `npm run playground:build` passes. Vite retains its existing large-chunk
+  advisory; no new runtime dependency or public package path was added.
+- An isolated copy using web_core 0.10.7 and Material 1.2.0 passes
+  typechecking, 129 tests, build and package checks. Both tests in the
+  official-surface file are excluded there because @a2ui/react 0.11.1
+  carries web_core 0.11; the full main suite covers them. No installed
+  peer code was edited or patched.
+- Chromium at 1280px: inspected the trip planner in light and dark modes;
+  toggled the switch, selected Adventure and One week, saved the trip and
+  activated the itinerary. Action context contained the edited values.
+  Tooltip opens on native button focus, supplies its description, and
+  closes on Escape. ArrowRight scrolls the carousel.
+- At 390px the page has no horizontal overflow; the playground's existing
+  stage scroll exposes the remaining components. Screenshots were inspected
+  after theme transitions settled. Browser checks reported no page errors.
+- Protocol regression tests include late/replaced tooltip anchors, literal
+  and bound selection, dynamic disabled state, validation, function labels,
+  progress updates, templated child scopes and invalid schema rejection.
+- The Material catalog ID is not hosted by this change. The README and ADR
+  explain inline capability delivery and the separately owned hosting task.
+
 ## Current task
 
 None.

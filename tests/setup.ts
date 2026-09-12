@@ -22,3 +22,8 @@ if (dialog && typeof dialog.showModal !== 'function') {
     this.dispatchEvent(new Event('close'))
   }
 }
+
+// Select scrolls its active option into view; jsdom has no layout to scroll.
+if (typeof HTMLElement.prototype.scrollIntoView !== 'function') {
+  HTMLElement.prototype.scrollIntoView = function scrollIntoView() {}
+}

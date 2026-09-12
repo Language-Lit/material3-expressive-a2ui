@@ -1,0 +1,8 @@
+.m3e-a2ui-tooltip {
+  min-inline-size: 0;
+}
+
+.m3e-a2ui-tooltip {
+  display: inline-flex;
+  align-self: flex-start;
+}

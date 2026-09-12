@@ -1,0 +1,9 @@
+.m3e-a2ui-segmented-buttons {
+  min-inline-size: 0;
+}
+
+.m3e-a2ui-segmented-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

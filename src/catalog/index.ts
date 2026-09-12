@@ -5,20 +5,29 @@ import {
   AudioPlayerImplementation,
   ButtonImplementation,
   CardImplementation,
+  CarouselImplementation,
   CheckBoxImplementation,
+  ChipImplementation,
   ChoicePickerImplementation,
   ColumnImplementation,
   DateTimeInputImplementation,
   DividerImplementation,
+  IconButtonImplementation,
   IconImplementation,
   ImageImplementation,
   ListImplementation,
+  ListItemImplementation,
   ModalImplementation,
+  ProgressImplementation,
   RowImplementation,
+  SegmentedButtonsImplementation,
+  SelectImplementation,
   SliderImplementation,
+  SwitchImplementation,
   TabsImplementation,
-  TextImplementation,
   TextFieldImplementation,
+  TextImplementation,
+  TooltipImplementation,
   VideoImplementation,
 } from '../components'
 import type { Material3ComponentImplementation } from '../runtime/adapter'
@@ -117,12 +126,31 @@ export const material3MinimalCatalog: Catalog<Material3ComponentImplementation> 
     [CapitalizeImplementation],
   )
 
-/**
- * Every specification catalog the package implements, in the order `useA2ui`
- * registers them by default. An agent that announces either id in
- * `createSurface` is accepted without configuration.
- */
+/** Package-owned extension id; use inline capabilities until a host serves its schema. */
+export const MATERIAL_CATALOG_ID = 'https://m3e.language-lit.com/a2ui/catalogs/material3/catalog.json'
+
+/** The additional components, without the basic components. */
+export const material3ExtendedComponents: readonly Material3ComponentImplementation[] = [
+  SwitchImplementation,
+  SelectImplementation,
+  IconButtonImplementation,
+  ChipImplementation,
+  ListItemImplementation,
+  ProgressImplementation,
+  CarouselImplementation,
+  SegmentedButtonsImplementation,
+  TooltipImplementation,
+]
+
+/** The basic catalog plus Material-specific controls and presentation. */
+export const material3ExtendedCatalog = createMaterial3Catalog({
+  id: MATERIAL_CATALOG_ID,
+  components: material3ExtendedComponents,
+})
+
+/** All shipped catalogs, registered in basic, minimal, Material order. */
 export const material3Catalogs: readonly Catalog<Material3ComponentImplementation>[] = [
   material3Catalog,
   material3MinimalCatalog,
+  material3ExtendedCatalog,
 ]

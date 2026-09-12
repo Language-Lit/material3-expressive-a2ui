@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest'
 import {
   BASIC_CATALOG_ID,
   MINIMAL_CATALOG_ID,
+  MATERIAL_CATALOG_ID,
   createMaterial3Catalog,
   material3Catalog,
   material3Catalogs,
@@ -80,11 +81,12 @@ describe('material3Catalog', () => {
   })
 
   it('is registered first among the default catalogs, ahead of the minimal one', () => {
-    expect(material3Catalogs.map((catalog) => catalog.id)).toEqual([BASIC_CATALOG_ID, MINIMAL_CATALOG_ID])
+    expect(material3Catalogs.map((catalog) => catalog.id)).toEqual([BASIC_CATALOG_ID, MINIMAL_CATALOG_ID, MATERIAL_CATALOG_ID])
     const processor = new MessageProcessor([...material3Catalogs], undefined, { version: 'v0.9.1' })
     expect(processor.getClientCapabilities()['v0.9.1']?.supportedCatalogIds).toEqual([
       BASIC_CATALOG_ID,
       MINIMAL_CATALOG_ID,
+      MATERIAL_CATALOG_ID,
     ])
   })
 

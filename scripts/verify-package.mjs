@@ -119,4 +119,19 @@ for (const name of Object.keys(minimalCatalog.functions)) {
   assert.match(functionsSource, new RegExp(`name: '${name}'`), `Minimal catalog function ${name} is not implemented`)
 }
 
+// Inspect the shipped objects as well as source registration. The extension
+// must not silently widen the specification's basic or minimal catalogs.
+const built = await import('../dist/index.js')
+const materialNames = ['Switch', 'Select', 'IconButton', 'Chip', 'ListItem', 'Progress', 'Carousel', 'SegmentedButtons', 'Tooltip']
+assert.deepEqual([...built.material3Catalog.components.keys()].sort(), specComponents)
+assert.deepEqual([...built.material3MinimalCatalog.components.keys()].sort(), Object.keys(minimalCatalog.components).sort())
+assert.deepEqual(built.material3ExtendedComponents.map((component) => component.name).sort(), [...materialNames].sort())
+assert.deepEqual([...built.material3ExtendedCatalog.components.keys()].sort(), [...specComponents, ...materialNames].sort())
+for (const name of materialNames) {
+  assert.equal(built[`${name}Implementation`], built.material3ExtendedCatalog.components.get(name))
+}
+assert.equal(built.material3ExtendedCatalog.id, built.MATERIAL_CATALOG_ID)
+assert.equal(built.material3ExtendedCatalog.functions.get('openUrl'), built.OpenUrlImplementation)
+assert.deepEqual(built.material3Catalogs.map((catalog) => catalog.id), [built.BASIC_CATALOG_ID, built.MINIMAL_CATALOG_ID, built.MATERIAL_CATALOG_ID])
+
 console.log('Package boundaries, directives, dependencies, catalog coverage and design-system usage verified.')
