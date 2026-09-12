@@ -201,17 +201,17 @@ checks the dispatched action. Note that `@a2ui/react` itself requires React
 | `Text` | `Text` | h1–h5 → headline/title roles; `caption` small and muted; `body` reading size. Markdown: bold, italic, code, links, headings, lists. |
 | `Image` | image with variant sizing | `icon`, `avatar` (round), `smallFeature`, `mediumFeature`, `largeFeature`, `header` (full width). |
 | `Icon` | `Icon` | catalog names as embedded glyphs, no font needed; `svgPath` inline. |
-| `Video` / `AudioPlayer` | native players with controls | |
+| `Video` / `AudioPlayer` | native players with controls | `posterUrl` (v1.0) shows a poster. |
 | `Row` / `Column` / `List` | flex containers / lists | `justify`, `align`, `weight`; `ChildList` templates expand per data item. |
 | `Card` | outlined `Card` | |
 | `Tabs` | `Tabs` | |
 | `Modal` | `Dialog` | the trigger's own action still dispatches. |
 | `Divider` | `Divider` | |
 | `Button` | filled / tonal / text `Button` | `primary` / `default` / `borderless`; disabled while `checks` fail. |
-| `TextField` | `TextField` / `TextArea` | short, long, obscured and number variants. |
+| `TextField` | `TextField` / `TextArea` | short, long, obscured and number variants; `placeholder` (v1.0). |
 | `CheckBox` | `Checkbox` | |
 | `ChoicePicker` | `Radio`, `Checkbox`, or filter `Chip` | exclusive or multiple; optional filter field. |
-| `Slider` | `Slider` | precision follows the range. |
+| `Slider` | `Slider` | precision follows the range; `steps` (v1.0) snaps to divisions. |
 | `DateTimeInput` | native date/time input in Material tokens | the design system has no picker yet; ISO 8601 both ways, zone-aware. |
 
 Every colour, type style, corner, duration and easing resolves to a `--m3e-*`
@@ -231,6 +231,10 @@ token, so surfaces follow your theme in light and dark at any density.
 - **Catalog:** the specification's basic and minimal catalogs, by default.
   Other catalogs need implementations registered through
   `createMaterial3Catalog`.
+- **v1.0 ahead of time:** the three properties the v1.0 candidate catalog
+  adds — `posterUrl` on `Video`, `placeholder` on `TextField`, `steps` on
+  `Slider` — are accepted and advertised in the inline catalog now. The v1.0
+  protocol itself waits on a `v1_0` web_core entry.
 - **Icons:** names outside the catalog's list (and the few Material Symbols
   names the specification's examples use) fall back to a Material Symbols
   ligature, which renders only if your app loads that font.
@@ -287,6 +291,7 @@ so what you see is the source.
 - [ADR 0001](docs/adr/0001-separate-package-on-web-core.md) — why a separate package, on web_core alone
 - [ADR 0002](docs/adr/0002-render-only-implementations-and-own-surface.md) — render-only implementations and the surface
 - [ADR 0003](docs/adr/0003-rendering-decisions.md) — icons, Markdown, the date input, `primaryColor`
+- [ADR 0004](docs/adr/0004-forward-compatible-properties.md) — the three v1.0 properties accepted ahead of a v1.0 runtime
 
 ## License
 

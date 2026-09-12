@@ -6,7 +6,7 @@ import { message } from '../../fixtures/messages'
 import { renderSurface } from '../../fixtures/render'
 import { fromPickerValue, hasExplicitZone, toPickerValue } from '../../src/components/DateTimeInput/DateTimeInput'
 import { toMaterialSymbol } from '../../src/components/Icon'
-import { sliderPrecision } from '../../src/components/Slider/Slider'
+import { sliderPrecision, stepPrecision } from '../../src/components/Slider/Slider'
 import { resolveIconGlyph, toCatalogIconName } from '../../src/internal/icons'
 
 const SURFACE = 'controls'
@@ -261,5 +261,53 @@ describe('Text', () => {
     ])
     expect(screen.getByRole('heading', { level: 1, name: 'Invitation Builder' })).toBeDefined()
     expect(screen.getByRole('heading', { level: 3, name: 'Details with emphasis' })).toBeDefined()
+  })
+})
+
+describe('forward-compatible v1.0 properties', () => {
+  it('shows a Video poster from posterUrl', () => {
+    const { container } = renderSurface([
+      message.createSurface(SURFACE),
+      message.updateComponents(SURFACE, [
+        { id: 'root', component: 'Video', url: 'https://example.com/clip.mp4', posterUrl: { path: '/poster' } },
+      ]),
+      message.updateDataModel(SURFACE, { poster: 'https://example.com/poster.jpg' }),
+    ])
+    const video = container.querySelector('video')
+    expect(video?.getAttribute('src')).toBe('https://example.com/clip.mp4')
+    expect(video?.getAttribute('poster')).toBe('https://example.com/poster.jpg')
+  })
+
+  it('shows a TextField placeholder on both the single-line field and the text area', () => {
+    renderSurface([
+      message.createSurface(SURFACE),
+      message.updateComponents(SURFACE, [
+        { id: 'root', component: 'Column', children: ['email', 'notes'] },
+        { id: 'email', component: 'TextField', label: 'Email', placeholder: 'you@example.com' },
+        { id: 'notes', component: 'TextField', label: 'Notes', variant: 'longText', placeholder: 'Anything else?' },
+      ]),
+    ])
+    expect(screen.getByPlaceholderText('you@example.com').tagName).toBe('INPUT')
+    expect(screen.getByPlaceholderText('Anything else?').tagName).toBe('TEXTAREA')
+  })
+
+  it('snaps a Slider to the divisions steps declares', async () => {
+    const user = userEvent.setup()
+    const { surface } = renderSurface([
+      message.createSurface(SURFACE),
+      message.updateComponents(SURFACE, [
+        { id: 'root', component: 'Slider', label: 'Rating', min: 0, max: 1, steps: 4, value: { path: '/rating' } },
+      ]),
+      message.updateDataModel(SURFACE, { rating: 0.3 }),
+    ])
+    const slider = screen.getByRole('slider', { name: 'Rating' }) as HTMLInputElement
+    expect(slider.value).toBe('0.25')
+    expect(screen.getByText('0.25')).toBeDefined()
+    slider.focus()
+    await user.keyboard('{ArrowRight}')
+    await waitFor(() => expect(surface.dataModel.get('/rating')).toBe(0.5))
+    expect(stepPrecision(0.25)).toBe(2)
+    expect(stepPrecision(1 / 3)).toBe(4)
+    expect(stepPrecision(5)).toBe(0)
   })
 })

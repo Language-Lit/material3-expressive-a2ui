@@ -1,4 +1,5 @@
-import { MessageProcessor } from '@a2ui/web_core/v0_9'
+import { Catalog, type ComponentApi, MessageProcessor } from '@a2ui/web_core/v0_9'
+import { BASIC_COMPONENTS } from '@a2ui/web_core/v0_9/basic_catalog'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -135,5 +136,46 @@ describe('material3MinimalCatalog', () => {
     expect(catalog?.catalogId).toBe(MINIMAL_CATALOG_ID)
     expect(Object.keys(catalog?.components ?? {}).sort()).toEqual(Object.keys(minimalSpecCatalog.components).sort())
     expect(catalog?.functions?.map((fn) => fn.name)).toEqual(['capitalize'])
+  })
+})
+
+/**
+ * The property names a component schema declares: those on the schema itself
+ * and on any `allOf` member, without descending into the properties' own
+ * schemas (a bound string's `path` is not a component property).
+ */
+function propertyNames(schema: unknown, into = new Set<string>()): Set<string> {
+  if (schema && typeof schema === 'object') {
+    const record = schema as Record<string, unknown>
+    const properties = record['properties']
+    if (properties && typeof properties === 'object') Object.keys(properties).forEach((key) => into.add(key))
+    const members = record['allOf']
+    if (Array.isArray(members)) members.forEach((member) => propertyNames(member, into))
+  }
+  return into
+}
+
+describe('forward-compatible v1.0 properties', () => {
+  const inlineComponents = (catalog: Catalog<ComponentApi>) =>
+    new MessageProcessor([catalog], undefined, { version: 'v0.9.1' }).getClientCapabilities({
+      includeInlineCatalogs: true,
+    })['v0.9.1']?.inlineCatalogs?.[0]?.components
+  const implemented = inlineComponents(material3Catalog)
+  const additions: Record<string, string[]> = { Video: ['posterUrl'], TextField: ['placeholder'], Slider: ['steps'] }
+
+  it('are advertised in the inline catalog so an agent can discover them', () => {
+    for (const [name, keys] of Object.entries(additions)) {
+      const declared = propertyNames(implemented?.[name])
+      for (const key of keys) expect(declared.has(key), `${name}.${key}`).toBe(true)
+    }
+  })
+
+  it("are the only additions to web_core's own component schemas", () => {
+    const stock = inlineComponents(new Catalog(BASIC_CATALOG_ID, BASIC_COMPONENTS))
+    for (const name of Object.keys(stock ?? {})) {
+      const stockKeys = propertyNames(stock?.[name])
+      const extra = [...propertyNames(implemented?.[name])].filter((key) => !stockKeys.has(key))
+      expect(extra.sort(), name).toEqual((additions[name] ?? []).sort())
+    }
   })
 })

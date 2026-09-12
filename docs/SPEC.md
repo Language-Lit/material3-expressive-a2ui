@@ -118,9 +118,10 @@ web_core's API. CI verifies both by inspecting sources and the built chunk.
 The package targets A2UI **v0.9.1** through web_core `^0.10.7 || ^0.11.0`.
 The suite MUST pass at the range's floor as well as at the version the
 lockfile pins, so a consumer on either minor gets the same behaviour.
-`useA2ui` defaults the processor to `v0.9.1` and MAY be told `v0.9`. The catalog id
-defaults to the specification's basic catalog id, so an agent that announces
-that id in `createSurface` is accepted without configuration.
+`useA2ui` defaults the processor to `v0.9.1` and MAY be told `v0.9`. The
+processor registers the specification's basic and minimal catalogs under
+their own ids by default, so an agent that announces either in
+`createSurface` is accepted without configuration.
 
 ## 3. Architecture
 
@@ -201,6 +202,16 @@ the first character and lower-cases the rest, the semantics of Python's
 `str.capitalize`, and returns an empty string for a missing value so the
 specification's own example renders without an expression error before the
 user has typed.
+
+The basic implementations MUST also accept the three optional properties the
+v1.0 candidate catalog adds — `posterUrl` on `Video`, `placeholder` on
+`TextField`, `steps` on `Slider` — with v1.0's descriptions and semantics,
+and MUST advertise them in the inline catalog
+([ADR 0004](adr/0004-forward-compatible-properties.md)). No other property
+beyond web_core's own component schemas MAY be added, and a test MUST
+compare the inline schemas against web_core's to enforce that. The v1.0
+protocol (new components, `live`, `hidden`, message renames) is out of
+scope until web_core ships an entry for it.
 
 ## 4. Rendering rules
 

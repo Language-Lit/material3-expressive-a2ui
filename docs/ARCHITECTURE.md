@@ -142,7 +142,7 @@ Each component is a directory of `<Name>.tsx`, `<Name>.css`, and `index.ts`:
 | `Text` | `Text` as `h1`–`h5`, `p`, or `span` | h1 headline-large … h5 title-medium; caption body-small in the variant colour; body body-large. Markdown subset; block Markdown only for `body`. |
 | `Image` | `<img>` with variant and fit classes | `icon` 24px, `avatar` 40px round, `header` full-width 200px; other variants intrinsic size, never stretched by the parent. |
 | `Icon` | `Icon` with an embedded glyph | `svgPath` inline; `{ path }` as `<img>`; names outside the embedded set fall back to a ligature. `accessibility.label` makes it non-decorative. |
-| `Video` | native `<video controls>` | |
+| `Video` | native `<video controls>` | `posterUrl` → `poster` (v1.0, ADR 0004). |
 | `AudioPlayer` | native `<audio controls>` | with an optional description |
 | `Row` / `Column` | flex `div` | `justify`/`align` modifiers; `weight` → `flex`. |
 | `List` | `<ul>` / `<ol>` / `div` | one `<li>` per child; direction from `direction`. |
@@ -151,10 +151,10 @@ Each component is a directory of `<Name>.tsx`, `<Name>.css`, and `index.ts`:
 | `Modal` | `Dialog` | the trigger renders in a wrapper whose click opens the dialog, so the trigger's own action still dispatches; content mounts only while open. |
 | `Divider` | `Divider` | orientation from `axis`. |
 | `Button` | `Button` | `primary` → filled, `default` → tonal, `borderless` → text; disabled while `checks` fail; dispatches `action`. |
-| `TextField` | `TextField` / `TextArea` | `longText` → text area; `obscured` → password; `number` → numeric; errors after the field is touched. |
+| `TextField` | `TextField` / `TextArea` | `longText` → text area; `obscured` → password; `number` → numeric; `placeholder` (v1.0) passes through; errors after the field is touched. |
 | `CheckBox` | `Checkbox` in a `<label>` | two-way bound. |
 | `ChoicePicker` | `Radio`, `Checkbox`, or filter `Chip` | `mutuallyExclusive` → radios; `displayStyle: chip` → chips; optional filter field; value is always a `string[]`. |
-| `Slider` | `Slider` | fills its parent; precision from the range (hundredths ≤ 1, tenths ≤ 10, otherwise whole numbers). |
+| `Slider` | `Slider` | fills its parent; precision from the range (hundredths ≤ 1, tenths ≤ 10, otherwise whole numbers); with `steps` (v1.0) the value snaps to the divisions and the precision follows the step. |
 | `DateTimeInput` | native `<input type="date/time/datetime-local">` | the one sanctioned native control; ISO 8601 both ways, zone-aware. |
 
 ### Two rules the components never break

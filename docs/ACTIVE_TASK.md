@@ -322,6 +322,51 @@ covered. Expected files: `src/catalog/functions.ts` (new),
   the basic ones as "Minimal · <name>", deep-linkable as
   `?example=minimal/<file>`.
 
+## T06 — Forward-compatible v1.0 properties
+
+Status: complete
+Approved: 2026-09-12 (owner: "Ok, let's do them all")
+Completed: 2026-09-12
+
+### Scope and expected files
+
+The v1.0 candidate catalog keeps the basic component set and adds three
+optional properties: `posterUrl` on `Video`, `placeholder` on `TextField`
+and `steps` on `Slider`. Accept them now on the v0.9.1 implementations, with
+v1.0's descriptions and semantics, so an agent that knows the newer catalog
+is not silently stripped; take nothing else from v1.0. Expected files:
+`src/components/Video/Video.tsx`, `src/components/TextField/TextField.tsx`,
+`src/components/Slider/Slider.tsx`, `tests/components/controls.test.tsx`,
+`tests/catalog/catalog.test.ts`, `docs/adr/0004-forward-compatible-properties.md`
+(new), `README.md`, `docs/SPEC.md`, `docs/ARCHITECTURE.md`,
+`docs/ACTIVE_TASK.md`.
+
+### Acceptance checks
+
+1. `npm run verify` passes.
+2. A `Video` with a bound `posterUrl` renders it as `poster`; a `TextField`
+   placeholder reaches the input and the text area; a `Slider` with
+   `steps: 4` over 0–1 shows `0.25` for a bound `0.3` and writes `0.5` back
+   after one arrow key.
+3. The inline catalog declares the three properties, and declares no other
+   property beyond web_core's own component schemas.
+
+### Verification record
+
+- `npm run verify` green: typecheck, 99 tests in 6 files, build, namespace
+  guard and package inspection.
+- The "only additions" test compares against a catalog built from web_core's
+  `BASIC_COMPONENTS` rather than against `fixtures/catalog.json`: web_core's
+  `List` already carries a `listStyle` that the v0.9.1 JSON does not, so the
+  JSON is not the right baseline for what this package adds.
+- The design system's `steps` counts the values strictly between the
+  endpoints; the catalog counts the divisions, so the prop is `steps - 1`,
+  and the implementation snaps the value itself so `steps: 1` (no interior
+  value, which the design system treats as continuous) still lands on an
+  endpoint.
+- This commit also carries the corrected §2.2 sentence in `docs/SPEC.md`
+  that T05's commit missed.
+
 ## Current task
 
 None.
