@@ -635,7 +635,7 @@ cross-repository permission question. Do not edit installed peers.
 Owner approval: 2026-09-12 ("ok, do it.").
 
 Publish the completed compatible renderer work as
-`@language-lit/material3-expressive-a2ui@0.2.0` under `latest`. Expected files:
+`@language-lit/material3-expressive-a2ui@0.2.1` under `latest`. Expected files:
 `package.json`, `package-lock.json`, this task record, and the specification
 version. The release must preserve the published `^1.2.0` Material peer floor:
 installed 1.2 releases retain the native DateTimeInput path, while picker-bearing
@@ -643,7 +643,12 @@ releases such as `1.3.0-rc.1` use the public picker components. Verify both
 paths, the packed artifact, npm registry installation, and a pushed `v0.2.0`
 tag. No v1 protocol or live-site deployment claim is added.
 
-Release verification: pending publication.
+`0.2.0` was published and immediately exposed an npm semver metadata gap:
+`^1.2.0` correctly excludes the `1.3.0-rc.1` prerelease, so a normal consumer
+cannot install that candidate alongside the renderer. `0.2.1` adds the explicit
+`>=1.3.0-rc.1 <1.4.0` alternative while retaining the 1.2 stable floor. It is
+the intended latest release and supersedes `0.2.0`; publication verification is
+pending.
 
 ## Current task
 
