@@ -1,8 +1,8 @@
 # Material 3 Expressive A2UI Specification
 
-Status: vertical slice implemented; unreleased
+Status: public release; v0.9.1 renderer
 Specification date: 2026-09-11
-Current version: `0.1.0`
+Current version: `0.2.0`
 
 This document defines the product, boundary, architecture, and quality bar for
 `@language-lit/material3-expressive-a2ui`.

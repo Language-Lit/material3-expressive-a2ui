@@ -630,6 +630,21 @@ cross-repository permission question. Do not edit installed peers.
   work is complete. The v1 runtime remains a separate upstream project; no v1
   runtime is implemented or claimed here.
 
+### 0.2.0 release delivery
+
+Owner approval: 2026-09-12 ("ok, do it.").
+
+Publish the completed compatible renderer work as
+`@language-lit/material3-expressive-a2ui@0.2.0` under `latest`. Expected files:
+`package.json`, `package-lock.json`, this task record, and the specification
+version. The release must preserve the published `^1.2.0` Material peer floor:
+installed 1.2 releases retain the native DateTimeInput path, while picker-bearing
+releases such as `1.3.0-rc.1` use the public picker components. Verify both
+paths, the packed artifact, npm registry installation, and a pushed `v0.2.0`
+tag. No v1 protocol or live-site deployment claim is added.
+
+Release verification: pending publication.
+
 ## Current task
 
 T10.

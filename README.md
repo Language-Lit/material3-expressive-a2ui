@@ -16,6 +16,10 @@ your app.
 Published as `@language-lit/material3-expressive-a2ui`. This is an
 independent community implementation; it is not affiliated with Google.
 
+Version `0.2.0` adds a picker-aware `DateTimeInput`: it uses Material's public
+date/time picker exports when installed, while remaining compatible with the
+published Material 1.2 line through its existing native control fallback.
+
 [![Material 3 Expressive A2UI playground rendering a Reserve a table form with name, email, date, seating chips, a guests slider and a checked confirmation, plus the reserve action the agent received](docs/assets/a2ui-preview.webp)](https://m3e.language-lit.com/a2ui/)
 
 *Binding, validation and actions in the scripted playground. [Try the demo](https://m3e.language-lit.com/a2ui/).*
