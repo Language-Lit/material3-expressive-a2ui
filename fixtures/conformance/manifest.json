@@ -34,5 +34,16 @@
       "path": "specification/v1_0/test/cases",
       "reason": "The package targets v0.9/v0.9.1 and does not claim v1.0 protocol support."
     }
+  ],
+  "knownFailures": [
+    {
+      "suite": "conformance/core/expressions.yaml",
+      "case": "test_expr_error_invalid_number_two_points",
+      "dependency": "@a2ui/web_core",
+      "version": "0.10.7",
+      "reason": "ExpressionParser accepts ${1.2.3} instead of raising the upstream Invalid number literal error.",
+      "handling": "The test is an expected failure only for this exact dependency version and case; v0.11 and later remain strict.",
+      "resolution": "Use @a2ui/web_core 0.11 or remove this entry when the floor parser rejects the malformed literal."
+    }
   ]
 }

@@ -54,3 +54,13 @@ The upstream v0.8 vectors and the upstream v1.0 protocol test cases are not
 part of this package's target. The tests accept v0.9 and v0.9.1, whose
 `web_core` entry documents the state and expression vectors as compatible.
 They make no v1.0 support claim.
+
+The installed `@a2ui/web_core@0.10.7` parser has one known floor discrepancy:
+it accepts the malformed expression `${1.2.3}` in
+`test_expr_error_invalid_number_two_points`, although the pinned upstream
+vector expects `Invalid number literal`. The test uses Vitest's expected-failure
+mode only for that exact package version and case, so `0.11` and later stay
+strict and detect a regression if the parser still accepts it. The recommended
+conformance floor is `@a2ui/web_core@0.11`; there is no runtime workaround in
+this package. The exception is recorded in
+[`fixtures/conformance/manifest.json`](../fixtures/conformance/manifest.json).
