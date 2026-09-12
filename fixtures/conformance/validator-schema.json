@@ -1,0 +1,108 @@
+[
+  {
+    "name": "test_validator_0_9",
+    "description": "Tests validation of v0.9 messages.",
+    "catalog": {
+      "version": "0.9",
+      "common_types_schema": "test_data/simplified_common_types_v09.json",
+      "s2c_schema": "test_data/simplified_s2c_v09.json",
+      "catalog_schema": "test_data/simplified_catalog_v09.json"
+    },
+    "action": "validate",
+    "steps": [
+      {
+        "payload": [
+          {
+            "version": "v0.9",
+            "createSurface": {
+              "surfaceId": "test-id",
+              "catalogId": "standard",
+              "theme": {
+                "primaryColor": "blue",
+                "iconUrl": "http://img"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "payload": [
+          {
+            "createSurface": {
+              "surfaceId": "123",
+              "catalogId": "standard"
+            }
+          }
+        ],
+        "expect_error": {
+          "category": "ValidationError",
+          "details": [
+            {
+              "path": "messages.0.version",
+              "code": "missing_field"
+            }
+          ]
+        }
+      },
+      {
+        "payload": [
+          {
+            "version": "v0.8",
+            "createSurface": {
+              "surfaceId": "123",
+              "catalogId": "standard"
+            }
+          }
+        ],
+        "expect_error": {
+          "category": "ValidationError",
+          "details": [
+            {
+              "path": "messages.0.version",
+              "code": "invalid_value"
+            }
+          ]
+        }
+      },
+      {
+        "payload": [
+          {
+            "version": "v0.9",
+            "createSurface": {
+              "surfaceId": 123,
+              "catalogId": "standard"
+            }
+          }
+        ],
+        "expect_error": {
+          "category": "ValidationError",
+          "details": [
+            {
+              "path": "messages.0.createSurface.surfaceId",
+              "code": "type_mismatch"
+            }
+          ]
+        }
+      },
+      {
+        "payload": [
+          {
+            "version": "v0.9",
+            "createSurface": {
+              "surfaceId": "123"
+            }
+          }
+        ],
+        "expect_error": {
+          "category": "ValidationError",
+          "details": [
+            {
+              "path": "messages.0.createSurface.catalogId",
+              "code": "missing_field"
+            }
+          ]
+        }
+      }
+    ]
+  }
+]

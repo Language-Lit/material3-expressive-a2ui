@@ -1,0 +1,38 @@
+{
+  "repository": "https://github.com/a2ui-project/a2ui",
+  "commit": "1c45c809b655878d06e3afc6dda22100afecc0a4",
+  "sourceFiles": {
+    "conformance/core/data_model.yaml": {
+      "sha256": "cc2d4146d2f6cbd47cd9ea5f07722a51a6dbc6ccd7cfa88a145e0e5e556be3fd",
+      "generatedFile": "data-model.json",
+      "generatedSha256": "de0c148c21dc1d0f71684d95a63d5ff0bb1c2d69ae3fd6b905350c66ca0020c2",
+      "caseCount": 37
+    },
+    "conformance/core/expressions.yaml": {
+      "sha256": "27f447854f3431d534d143eb439a977b61fdf0d96d2581699852761f5c7d91d8",
+      "generatedFile": "expressions.json",
+      "generatedSha256": "4acd5711ddcd18270349b8fa9ac7cf4a0182f76a22cb43b32bfb2c8ae4131928",
+      "caseCount": 31
+    },
+    "conformance/core/message_processor.yaml": {
+      "sha256": "52d3d728885b4ca4ae0faf024071cb98446dd99dfa146d2fd764165497b7c062",
+      "generatedFile": "message-processor.json",
+      "generatedSha256": "af980e2f13224038f8b65df8461d81a36dfae0d7b2aa91377d99fa9a8ed515f8",
+      "caseCount": 2
+    },
+    "conformance/core/validator.yaml": {
+      "sha256": "51755614569daed48ffe283be52a2c799576d479052939f433ee1066c272ed93",
+      "generatedFile": "validator-schema.json",
+      "generatedSha256": "60ec4a851f60b8deaae6ef275a71890392626fc8956ce83d29a08a769faa9062",
+      "caseCount": 1,
+      "selectedCases": ["test_validator_0_9"],
+      "upstreamCaseCount": 45
+    }
+  },
+  "excluded": [
+    {
+      "path": "specification/v1_0/test/cases",
+      "reason": "The package targets v0.9/v0.9.1 and does not claim v1.0 protocol support."
+    }
+  ]
+}
