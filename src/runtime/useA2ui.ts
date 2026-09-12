@@ -6,6 +6,8 @@ import {
   type A2uiClientDataModel,
   type A2uiMessage,
   type A2uiMessageListWrapper,
+  A2uiMessageListSchema,
+  A2uiMessageListWrapperSchema,
   type CapabilitiesOptions,
   type Catalog,
   type SurfaceModel,
@@ -48,8 +50,11 @@ export interface UseA2uiResult {
   readonly surfaces: readonly SurfaceModel<Material3ComponentImplementation>[]
   /**
    * Feeds server-to-client messages (a JSONL batch, already parsed) to the
-   * processor. The messages are copied first, so the objects you pass are
-   * never mutated and can be replayed.
+   * processor. The batch is copied and its public v0.9 envelope schema is
+   * validated before processing, so an invalid version or envelope cannot
+   * partially mutate the processor. The objects you pass are never mutated
+   * and can be replayed. Component and state errors raised during processing
+   * still follow web_core's normal error behavior.
    */
   readonly processMessages: (messages: readonly A2uiMessage[] | A2uiMessageListWrapper) => void
   /** The `a2uiClientCapabilities` object to send with the first request. */
@@ -168,7 +173,11 @@ export function useA2ui(options: UseA2uiOptions = {}): UseA2uiResult {
   const processMessages = useCallback(
     (messages: readonly A2uiMessage[] | A2uiMessageListWrapper) => {
       try {
-        processor.processMessages(structuredClone(isWrapper(messages) ? messages : [...messages]))
+        const copied = structuredClone(isWrapper(messages) ? messages : [...messages])
+        const validated = isWrapper(copied)
+          ? A2uiMessageListWrapperSchema.parse(copied)
+          : A2uiMessageListSchema.parse(copied)
+        processor.processMessages(validated)
       } catch (error) {
         if (!onErrorRef.current) throw error
         onErrorRef.current(error)

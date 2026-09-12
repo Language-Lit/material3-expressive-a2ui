@@ -73,7 +73,12 @@ runtime stores `updateDataModel` values by reference and writes bound input
 into them, so without the copy a host's own message objects — a transcript
 in state, a fixture replayed later — would carry one session's edits into
 the next. The site demo found this: replaying a form after a reset showed the
-previously typed name.
+previously typed name. It validates the copied array or message-list wrapper
+with web_core's public v0.9 envelope schema before handing it to the
+processor, so an invalid version or envelope cannot partially mutate a batch.
+This validation boundary does not make web_core's subsequent component or
+state processing transactional: those errors retain web_core's normal
+behavior.
 
 ## Rendering a surface
 

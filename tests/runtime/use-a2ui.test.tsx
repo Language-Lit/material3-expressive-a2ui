@@ -1,24 +1,37 @@
-import type { A2uiClientAction } from '@a2ui/web_core/v0_9'
+import type { A2uiClientAction, A2uiMessage } from '@a2ui/web_core/v0_9'
+import { ButtonApi, TextApi } from '@a2ui/web_core/v0_9/basic_catalog'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { StrictMode, useEffect } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { message } from '../../fixtures/messages'
 import { wrap } from '../../fixtures/render'
-import { BASIC_CATALOG_ID, MINIMAL_CATALOG_ID, MATERIAL_CATALOG_ID } from '../../src/catalog'
+import {
+  BASIC_CATALOG_ID,
+  createMaterial3Catalog,
+  MATERIAL_CATALOG_ID,
+  MINIMAL_CATALOG_ID,
+} from '../../src/catalog'
 import { A2uiSurface } from '../../src/runtime/A2uiSurface'
-import { useA2ui, type UseA2uiResult } from '../../src/runtime/useA2ui'
+import {
+  useA2ui,
+  type UseA2uiOptions,
+  type UseA2uiResult,
+} from '../../src/runtime/useA2ui'
+import { createMaterial3Component } from '../../src/runtime/adapter'
 
 function Host({
   onReady,
   onAction,
   onError,
+  catalogs,
 }: {
   onReady: (a2ui: UseA2uiResult) => void
   onAction?: (action: A2uiClientAction) => void
   onError?: (error: unknown, surfaceId?: string) => void
+  catalogs?: UseA2uiOptions['catalogs']
 }) {
-  const a2ui = useA2ui({ onAction, onError })
+  const a2ui = useA2ui({ catalogs, onAction, onError })
   useEffect(() => {
     onReady(a2ui)
   }, [a2ui, onReady])
@@ -90,6 +103,80 @@ describe('useA2ui', () => {
     })
     expect(onAction).toHaveBeenCalledTimes(1)
     expect(onAction.mock.calls[0]?.[0]).toMatchObject({ name: 'ping', surfaceId: 's', context: { n: 1 } })
+  })
+
+  it('validates the whole message batch before mutating the processor', () => {
+    const onError = vi.fn()
+    let a2ui!: UseA2uiResult
+    render(wrap(<Host onReady={(value) => (a2ui = value)} onError={onError} />))
+
+    const invalidVersion = {
+      version: 'v1.0',
+      createSurface: { surfaceId: 'invalid-version', catalogId: BASIC_CATALOG_ID },
+    } as unknown as A2uiMessage
+
+    act(() => {
+      a2ui.processMessages([message.createSurface('valid'), invalidVersion])
+    })
+
+    expect(onError).toHaveBeenCalledTimes(1)
+    expect(screen.getByTestId('count').textContent).toBe('0')
+  })
+
+  it('reports malformed envelopes through onError or throws without a handler', () => {
+    const malformed = {
+      version: 'v0.9',
+      createSurface: { surfaceId: 'missing-catalog' },
+    } as unknown as A2uiMessage
+    const onError = vi.fn()
+    let handled!: UseA2uiResult
+    render(wrap(<Host onReady={(value) => (handled = value)} onError={onError} />))
+
+    act(() => handled.processMessages([malformed]))
+    expect(onError).toHaveBeenCalledTimes(1)
+    expect(screen.getByTestId('count').textContent).toBe('0')
+
+    let unhandled!: UseA2uiResult
+    render(wrap(<Host onReady={(value) => (unhandled = value)} />))
+    expect(() => {
+      act(() => unhandled.processMessages([malformed]))
+    }).toThrow()
+    expect(unhandled.surfaces).toHaveLength(0)
+  })
+
+  it('accepts a valid wrapper and preserves custom catalog components', () => {
+    const CustomButtonApi = {
+      name: 'CustomButton',
+      schema: ButtonApi.schema.extend({ badge: TextApi.schema.shape.text }),
+    }
+    const CustomButton = createMaterial3Component(CustomButtonApi, ({ props, buildChild }) => (
+      <button
+        type="button"
+        data-testid="custom-button"
+        onClick={() => (typeof props.action === 'function' ? props.action() : undefined)}
+      >
+        {String(props.badge)} {typeof props.child === 'string' ? buildChild(props.child) : null}
+      </button>
+    ))
+    const catalogId = 'https://example.com/custom-catalog.json'
+    const catalog = createMaterial3Catalog({ id: catalogId, components: [CustomButton] })
+    let a2ui!: UseA2uiResult
+    render(wrap(<Host onReady={(value) => (a2ui = value)} catalogs={[catalog]} />))
+
+    act(() => {
+      a2ui.processMessages({
+        messages: [
+          message.createSurface('wrapped', { catalogId }),
+          message.updateComponents('wrapped', [
+            { id: 'root', component: 'CustomButton', badge: 'Custom badge', child: 'label' },
+            { id: 'label', component: 'Text', text: 'Wrapped' },
+          ]),
+        ],
+      })
+    })
+
+    expect(screen.getByTestId('custom-button')).toBeDefined()
+    expect(screen.getByRole('button', { name: 'Custom badge Wrapped' })).toBeDefined()
   })
 
   it('does not mutate the messages it is given, so they can be replayed', () => {

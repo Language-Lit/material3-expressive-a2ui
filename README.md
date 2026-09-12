@@ -146,7 +146,11 @@ actionable function after the stream has initialized. Keep the raw reports
 inspectable, mark the stream boundary in the host, and treat expression
 errors after that boundary as actionable. A data update does not by itself
 prove that an expression recovered. Without an `onError`, processor errors
-are thrown from `processMessages`.
+are thrown from `processMessages`. Before handing a batch to web_core,
+`useA2ui` validates every message envelope, including its protocol version, so
+an invalid version or envelope reports through `onError` (or throws without a
+handler) without mutating the processor. Component and state errors raised
+while web_core processes a valid envelope follow web_core's normal behavior.
 
 ### Extend the catalog
 

@@ -573,6 +573,16 @@ cross-repository permission question. Do not edit installed peers.
   the log and coalesces the three repeated initialization reports, while each
   entry still exposes its raw details.
 
+### Message envelope validation (2026-09-12)
+
+- `useA2ui.processMessages` validates the copied array or message-list wrapper
+  with web_core's public v0.9 schema before processing, so invalid versions or
+  envelopes are reported (or thrown without a handler) without batch side
+  effects. Valid wrappers and custom catalogs remain supported.
+- `tests/runtime/use-a2ui.test.tsx` covers invalid version and envelope
+  handling, callback versus throw behavior, and valid wrapper/custom-catalog
+  processing. The focused runtime file passes (7 tests).
+
 ## Current task
 
 T10.
