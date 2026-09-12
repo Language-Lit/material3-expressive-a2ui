@@ -2,11 +2,22 @@ import { Text as MaterialText } from '@language-lit/material3-expressive'
 import { DateTimeInputApi } from '@a2ui/web_core/v0_9/basic_catalog'
 import { useState } from 'react'
 
+import { referencedSchema } from '../../internal/catalogSchemas'
 import { isInvalid, validationMessage } from '../../internal/checks'
 import { cx } from '../../internal/classNames'
 import { asText, weightStyle } from '../../internal/layout'
 import { useBoundValue } from '../../internal/useBoundValue'
 import { createMaterial3Component } from '../../runtime/adapter'
+
+const api = {
+  name: DateTimeInputApi.name,
+  schema: DateTimeInputApi.schema.extend({
+    value: referencedSchema(DateTimeInputApi.schema.shape.value, 'DynamicString'),
+    min: referencedSchema(DateTimeInputApi.schema.shape.min, 'DynamicString'),
+    max: referencedSchema(DateTimeInputApi.schema.shape.max, 'DynamicString'),
+    label: referencedSchema(DateTimeInputApi.schema.shape.label, 'DynamicString'),
+  }),
+}
 
 type PickerType = 'date' | 'time' | 'datetime-local'
 
@@ -70,7 +81,7 @@ export function fromPickerValue(picked: string, type: PickerType, previous: stri
  * component that renders a native input, dressed in the outlined text field's
  * tokens. Values stay ISO 8601 in both directions, as the catalog requires.
  */
-export const DateTimeInputImplementation = createMaterial3Component(DateTimeInputApi, ({ props }) => {
+export const DateTimeInputImplementation = createMaterial3Component(api, ({ props }) => {
   const enableDate = props.enableDate === true
   const enableTime = props.enableTime === true
   const type: PickerType =

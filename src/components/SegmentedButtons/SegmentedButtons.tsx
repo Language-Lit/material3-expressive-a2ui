@@ -7,6 +7,7 @@ import {
 import { ChoicePickerApi } from '@a2ui/web_core/v0_9/basic_catalog'
 import { useId, useState } from 'react'
 
+import { referencedSchema } from '../../internal/catalogSchemas'
 import { materialControlSchema } from '../../internal/materialSchemas'
 import { isInvalid, validationMessage } from '../../internal/checks'
 import { asText, weightStyle } from '../../internal/layout'
@@ -14,13 +15,17 @@ import { useBoundValue } from '../../internal/useBoundValue'
 import { createMaterial3Component } from '../../runtime/adapter'
 
 const EMPTY: string[] = []
+const optionsSchema = ChoicePickerApi.schema.shape.options
+const optionSchema = optionsSchema.element.extend({
+  label: referencedSchema(optionsSchema.element.shape.label, 'DynamicString'),
+})
 const api = {
   name: 'SegmentedButtons',
   schema: materialControlSchema.extend({
     label: DynamicStringSchema.describe(
       'REF:common_types.json#/$defs/DynamicString|Visible label for the group.',
     ),
-    options: ChoicePickerApi.schema.shape.options,
+    options: optionSchema.array().describe(optionsSchema.description ?? ''),
     value: DynamicStringListSchema.describe(
       'REF:common_types.json#/$defs/DynamicStringList|Selected values; single selection uses zero or one entry.',
     ),

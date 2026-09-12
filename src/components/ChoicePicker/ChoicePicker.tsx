@@ -8,6 +8,7 @@ import {
 import { ChoicePickerApi } from '@a2ui/web_core/v0_9/basic_catalog'
 import { useId, useState } from 'react'
 
+import { referencedSchema } from '../../internal/catalogSchemas'
 import { isInvalid, validationMessage } from '../../internal/checks'
 import { cx } from '../../internal/classNames'
 import { asText, weightStyle } from '../../internal/layout'
@@ -15,13 +16,25 @@ import { useBoundValue } from '../../internal/useBoundValue'
 import { createMaterial3Component } from '../../runtime/adapter'
 
 const EMPTY: string[] = []
+const optionsSchema = ChoicePickerApi.schema.shape.options
+const optionSchema = optionsSchema.element.extend({
+  label: referencedSchema(optionsSchema.element.shape.label, 'DynamicString'),
+})
+const api = {
+  name: ChoicePickerApi.name,
+  schema: ChoicePickerApi.schema.extend({
+    label: referencedSchema(ChoicePickerApi.schema.shape.label, 'DynamicString'),
+    options: optionSchema.array().describe(optionsSchema.description ?? ''),
+    value: referencedSchema(ChoicePickerApi.schema.shape.value, 'DynamicStringList'),
+  }),
+}
 
 /**
  * Selection is a string list either way: one entry when the picker is
  * mutually exclusive, any number otherwise. `checkbox` style renders radios
  * or checkboxes with labels; `chips` style renders filter chips.
  */
-export const ChoicePickerImplementation = createMaterial3Component(ChoicePickerApi, ({ props, context }) => {
+export const ChoicePickerImplementation = createMaterial3Component(api, ({ props, context }) => {
   const exclusive = props.variant !== 'multipleSelection'
   const chips = props.displayStyle === 'chips'
   const bound = Array.isArray(props.value) ? (props.value as string[]) : EMPTY

@@ -101,6 +101,23 @@ describe('Material extension through the real protocol', () => {
     expect(errors).toEqual([])
   })
 
+  it('resolves bindings in nested option labels after catalog reference annotation', () => {
+    const { errors } = render(
+      [
+        {
+          id: 'root',
+          component: 'Select',
+          label: { path: '/fieldLabel' },
+          value: 'a',
+          options: [{ label: { path: '/optionLabel' }, value: 'a' }],
+        },
+      ],
+      { fieldLabel: 'Destination', optionLabel: 'Kyoto' },
+    )
+    expect((screen.getByRole('combobox', { name: 'Destination' }) as HTMLInputElement).value).toBe('Kyoto')
+    expect(errors).toEqual([])
+  })
+
   it('keeps literal values editable and supports multiple segmented selections', async () => {
     const { errors } = render([
       { id: 'root', component: 'Column', children: ['switch', 'segments'] },

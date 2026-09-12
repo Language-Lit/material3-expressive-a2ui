@@ -3,6 +3,7 @@ import { DynamicNumberSchema } from '@a2ui/web_core/v0_9'
 import { SliderApi } from '@a2ui/web_core/v0_9/basic_catalog'
 import { useState } from 'react'
 
+import { referencedSchema } from '../../internal/catalogSchemas'
 import { isInvalid, validationMessage } from '../../internal/checks'
 import { asText, weightStyle } from '../../internal/layout'
 import { useBoundValue } from '../../internal/useBoundValue'
@@ -16,8 +17,13 @@ import { createMaterial3Component } from '../../runtime/adapter'
 const SliderApiWithSteps = {
   name: SliderApi.name,
   schema: SliderApi.schema.extend({
-    steps: DynamicNumberSchema.optional().describe(
-      'The number of discrete divisions in the slider range. If specified, the slider will snap to discrete values.',
+    label: referencedSchema(SliderApi.schema.shape.label, 'DynamicString'),
+    value: referencedSchema(SliderApi.schema.shape.value, 'DynamicNumber'),
+    steps: referencedSchema(
+      DynamicNumberSchema.optional().describe(
+        'The number of discrete divisions in the slider range. If specified, the slider will snap to discrete values.',
+      ),
+      'DynamicNumber',
     ),
   }),
 }

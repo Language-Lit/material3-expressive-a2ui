@@ -213,8 +213,10 @@ const capabilities = a2ui.getClientCapabilities({ includeInlineCatalogs: true })
 
 The Material ID is
 `https://m3e.language-lit.com/a2ui/catalogs/material3/catalog.json`.
-It identifies the catalog; this package does not fetch or host that URL.
-Use the inline schema rather than assuming a hosted JSON document exists.
+The runtime does not fetch that URL. The repository prepares a generated
+catalog document at `public/a2ui/catalogs/material3/catalog.json` for the
+documentation site to publish; site deployment remains separate, so use the
+inline schema rather than assuming the hosted document is live.
 To register only this catalog, pass `catalogs: [material3ExtendedCatalog]`
 to `useA2ui`. To build a locale-bound version:
 
@@ -358,12 +360,17 @@ so what you see is the source.
 - [Material 3 Expressive design system](https://m3e.language-lit.com)
 - [SPEC.md](docs/SPEC.md) — scope, public surface, rendering rules, quality bar
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md) — how a message stream becomes pixels
+- [CONFORMANCE.md](docs/CONFORMANCE.md) — pinned upstream vectors and coverage limits
+- [CATALOG_DELIVERY.md](docs/CATALOG_DELIVERY.md) — generated Material catalog output
+- [UPSTREAM_TASKS.md](docs/UPSTREAM_TASKS.md) — implementation briefs for external owners
 - [ADR 0001](docs/adr/0001-separate-package-on-web-core.md) — why a separate package, on web_core alone
 - [ADR 0002](docs/adr/0002-render-only-implementations-and-own-surface.md) — render-only implementations and the surface
 - [ADR 0003](docs/adr/0003-rendering-decisions.md) — icons, Markdown, the date input, `primaryColor`
 - [ADR 0004](docs/adr/0004-forward-compatible-properties.md) — the three v1.0 properties accepted ahead of a v1.0 runtime
 - [ADR 0005](docs/adr/0005-user-initiated-open-url.md) — `openUrl` runs only from a user-initiated action
 - [ADR 0006](docs/adr/0006-markdown-tables-and-nested-lists.md) — Markdown tables and nested lists
+- [ADR 0007](docs/adr/0007-material-extension-catalog.md) — the Material extension catalog
+- [ADR 0008](docs/adr/0008-canonical-schema-reference-metadata.md) — canonical catalog schema references
 
 ## License
 

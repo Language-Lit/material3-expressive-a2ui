@@ -3,12 +3,17 @@ import { DynamicStringSchema } from '@a2ui/web_core/v0_9'
 import { ChoicePickerApi } from '@a2ui/web_core/v0_9/basic_catalog'
 import { useState } from 'react'
 
+import { referencedSchema } from '../../internal/catalogSchemas'
 import { materialControlSchema } from '../../internal/materialSchemas'
 import { isInvalid, validationMessage } from '../../internal/checks'
 import { asText, weightStyle } from '../../internal/layout'
 import { useBoundValue } from '../../internal/useBoundValue'
 import { createMaterial3Component } from '../../runtime/adapter'
 
+const optionsSchema = ChoicePickerApi.schema.shape.options
+const optionSchema = optionsSchema.element.extend({
+  label: referencedSchema(optionsSchema.element.shape.label, 'DynamicString'),
+})
 const api = {
   name: 'Select',
   schema: materialControlSchema.extend({
@@ -18,7 +23,7 @@ const api = {
     value: DynamicStringSchema.describe(
       'REF:common_types.json#/$defs/DynamicString|Selected option value; a path binding writes changes back.',
     ),
-    options: ChoicePickerApi.schema.shape.options,
+    options: optionSchema.array().describe(optionsSchema.description ?? ''),
   }),
 }
 export const SelectImplementation = createMaterial3Component(api, ({ props }) => {

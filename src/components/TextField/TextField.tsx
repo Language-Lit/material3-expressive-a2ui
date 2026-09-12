@@ -6,6 +6,7 @@ import { DynamicStringSchema } from '@a2ui/web_core/v0_9'
 import { TextFieldApi } from '@a2ui/web_core/v0_9/basic_catalog'
 import { useState } from 'react'
 
+import { referencedSchema } from '../../internal/catalogSchemas'
 import { isInvalid, validationMessage } from '../../internal/checks'
 import { asText, weightStyle } from '../../internal/layout'
 import { useBoundValue } from '../../internal/useBoundValue'
@@ -18,7 +19,12 @@ import { createMaterial3Component } from '../../runtime/adapter'
 const TextFieldApiWithPlaceholder = {
   name: TextFieldApi.name,
   schema: TextFieldApi.schema.extend({
-    placeholder: DynamicStringSchema.optional().describe('The placeholder text for the input field.'),
+    label: referencedSchema(TextFieldApi.schema.shape.label, 'DynamicString'),
+    value: referencedSchema(TextFieldApi.schema.shape.value, 'DynamicString'),
+    placeholder: referencedSchema(
+      DynamicStringSchema.optional().describe('The placeholder text for the input field.'),
+      'DynamicString',
+    ),
   }),
 }
 

@@ -3,6 +3,7 @@ import { TextApi } from '@a2ui/web_core/v0_9/basic_catalog'
 import type { CSSProperties, ReactNode } from 'react'
 
 import { cx } from '../../internal/classNames'
+import { referencedSchema } from '../../internal/catalogSchemas'
 import { asText, weightStyle } from '../../internal/layout'
 import {
   hasBlockMarkdown,
@@ -14,6 +15,13 @@ import {
   type MarkdownList,
 } from '../../internal/markdown'
 import { createMaterial3Component } from '../../runtime/adapter'
+
+const api = {
+  name: TextApi.name,
+  schema: TextApi.schema.extend({
+    text: referencedSchema(TextApi.schema.shape.text, 'DynamicString'),
+  }),
+}
 
 type A2uiTextVariant = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'caption' | 'body'
 type BlockElement = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'span'
@@ -160,7 +168,7 @@ function Block({ block }: { readonly block: MarkdownBlock }) {
   )
 }
 
-export const TextImplementation = createMaterial3Component(TextApi, ({ props }) => {
+export const TextImplementation = createMaterial3Component(api, ({ props }) => {
   const variant: A2uiTextVariant = isTextVariant(props.variant) ? props.variant : 'body'
   const mapping = TEXT_MAPPING[variant]
   const text = asText(props.text)

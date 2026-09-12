@@ -1,8 +1,17 @@
 import { ImageApi } from '@a2ui/web_core/v0_9/basic_catalog'
 
 import { cx } from '../../internal/classNames'
+import { referencedSchema } from '../../internal/catalogSchemas'
 import { asText, weightStyle } from '../../internal/layout'
 import { createMaterial3Component } from '../../runtime/adapter'
+
+const api = {
+  name: ImageApi.name,
+  schema: ImageApi.schema.extend({
+    url: referencedSchema(ImageApi.schema.shape.url, 'DynamicString'),
+    description: referencedSchema(ImageApi.schema.shape.description, 'DynamicString'),
+  }),
+}
 
 const VARIANT_MODIFIERS: Readonly<Record<string, string>> = {
   icon: 'icon',
@@ -21,7 +30,7 @@ const FIT_MODIFIERS: Readonly<Record<string, string>> = {
   scaleDown: 'scale-down',
 }
 
-export const ImageImplementation = createMaterial3Component(ImageApi, ({ props }) => {
+export const ImageImplementation = createMaterial3Component(api, ({ props }) => {
   const variant = VARIANT_MODIFIERS[props.variant ?? 'mediumFeature'] ?? 'medium-feature'
   const fit = FIT_MODIFIERS[props.fit ?? 'fill'] ?? 'fill'
   const alt = asText(props.description) || asText(props.accessibility?.label)

@@ -225,6 +225,15 @@ its own id and `material3ExtendedComponents` (the nine additions only).
 The basic implementations are shared by identity. The factory also supplies
 the guarded basic functions. No runtime or transport logic changes.
 
+The standalone Material catalog document is generated from
+`getClientCapabilities({ includeInlineCatalogs: true })` by
+`scripts/generate-material-catalog.mjs`. The generator preserves the catalog's
+canonical reference metadata, rebases external common-type references, checks
+local JSON Pointers, and writes
+`public/a2ui/catalogs/material3/catalog.json`. The playground build exposes
+that file at `/a2ui/catalogs/material3/catalog.json`; publishing the route is
+owned by the documentation site, and the renderer runtime never fetches it.
+
 Each addition owns its schema in its `.tsx` file. The internal
 `materialSchemas.ts` composes common properties from the basic APIs, so
 checks and accessibility use web_core's exact types. Dynamic and child

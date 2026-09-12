@@ -3,5 +3,6 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   root: 'playground',
+  publicDir: '../public',
   plugins: [react()],
 })

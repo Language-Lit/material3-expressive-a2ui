@@ -230,10 +230,17 @@ The basic and minimal catalogs MUST NOT gain these components.
 
 The extension is registered third by default. Its schema MUST be advertised
 through `getClientCapabilities({ includeInlineCatalogs: true })`; this
-package does not host or fetch the catalog URL. Schemas MUST be composed
-from web_core's public schemas, preserving canonical reference metadata.
+package runtime does not fetch the catalog URL. The generator derives the
+standalone document from the actual catalog, preserves canonical reference
+metadata, validates its local pointers, and writes
+`public/a2ui/catalogs/material3/catalog.json` for the separately owned
+documentation-site deployment. Consumers SHOULD use the inline schema until
+that deployment is available. Schemas MUST be composed from web_core's public
+schemas, preserving canonical reference metadata.
 The property contract and deliberately limited peer component modes are
-recorded in [ADR 0007](adr/0007-material-extension-catalog.md).
+recorded in [ADR 0007](adr/0007-material-extension-catalog.md); canonical
+schema-reference preservation is recorded in
+[ADR 0008](adr/0008-canonical-schema-reference-metadata.md).
 
 Inputs use web_core's generated setters for bound values and remain locally
 editable for literals. Switch, Select and SegmentedButtons expose failed
@@ -333,6 +340,8 @@ CI MUST verify:
    `'use client'` directive, the web_core import allowlist, the absence of a
    direct `zod` import, catalog coverage against `fixtures/catalog.json`, the
    native-control allowlist, and the token-only CSS rule.
+5. The generated Material catalog document is reproducible, has resolvable
+   references, and round-trips through web_core's public catalog loader.
 
 Tests MUST cover, at minimum: the catalog's component set and icon enum
 against `fixtures/catalog.json`; the client capabilities object; two-way

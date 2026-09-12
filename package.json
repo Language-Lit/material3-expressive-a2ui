@@ -32,13 +32,15 @@
   "scripts": {
     "build": "tsup && node scripts/add-directives.mjs && npm run build:styles",
     "build:styles": "node scripts/build-styles.mjs",
+    "catalog:generate": "npm run build && node scripts/generate-material-catalog.mjs",
     "dev": "tsup --watch",
     "playground": "vite --config playground/vite.config.ts --port 5373 --strictPort",
     "playground:build": "vite build --config playground/vite.config.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest --run",
+    "verify:catalog": "node scripts/generate-material-catalog.mjs --check",
     "verify:package": "node scripts/verify-package.mjs",
-    "verify": "npm run typecheck && npm run test && npm run build && npm run verify:package"
+    "verify": "npm run typecheck && npm run test && npm run build && npm run verify:package && npm run verify:catalog"
   },
   "peerDependencies": {
     "@a2ui/web_core": "^0.10.7 || ^0.11.0",

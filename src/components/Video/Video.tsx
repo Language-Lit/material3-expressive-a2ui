@@ -1,6 +1,7 @@
 import { DynamicStringSchema } from '@a2ui/web_core/v0_9'
 import { VideoApi } from '@a2ui/web_core/v0_9/basic_catalog'
 
+import { referencedSchema } from '../../internal/catalogSchemas'
 import { asText, weightStyle } from '../../internal/layout'
 import { createMaterial3Component } from '../../runtime/adapter'
 
@@ -13,8 +14,12 @@ import { createMaterial3Component } from '../../runtime/adapter'
 const VideoApiWithPoster = {
   name: VideoApi.name,
   schema: VideoApi.schema.extend({
-    posterUrl: DynamicStringSchema.optional().describe(
-      'The URL of the poster image to display before the video plays.',
+    url: referencedSchema(VideoApi.schema.shape.url, 'DynamicString'),
+    posterUrl: referencedSchema(
+      DynamicStringSchema.optional().describe(
+        'The URL of the poster image to display before the video plays.',
+      ),
+      'DynamicString',
     ),
   }),
 }
