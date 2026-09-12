@@ -116,7 +116,7 @@ export function App() {
               A2UI · Material 3 Expressive
             </Text>
             <Text as="p" variant="bodySmall" style={{ margin: 0 }}>
-              The v0.9.1 basic-catalog examples from the specification, streamed one message at a time.
+              The v0.9.1 basic and minimal catalog examples from the specification, streamed one message at a time.
             </Text>
           </div>
           <div className="pg-bar__actions">

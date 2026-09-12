@@ -3,7 +3,7 @@ import { Material3Provider } from '@language-lit/material3-expressive'
 import { render } from '@testing-library/react'
 import { StrictMode, type ReactNode } from 'react'
 
-import { material3Catalog } from '../src/catalog'
+import { material3Catalogs } from '../src/catalog'
 import { A2uiSurface, type A2uiSurfaceModel } from '../src/runtime/A2uiSurface'
 import type { Material3ComponentImplementation } from '../src/runtime/adapter'
 
@@ -14,12 +14,13 @@ export function wrap(children: ReactNode, strict = false) {
 
 /**
  * Processes messages through a real `MessageProcessor` and renders the first
- * surface they create with `A2uiSurface`, the way a host would.
+ * surface they create with `A2uiSurface`, the way a host would. The processor
+ * carries the same catalogs `useA2ui` registers by default.
  */
 export function renderSurface(messages: readonly A2uiMessage[], options: { strict?: boolean } = {}) {
   const actions: A2uiClientAction[] = []
   const errors: unknown[] = []
-  const processor = new MessageProcessor<Material3ComponentImplementation>([material3Catalog], (action) => {
+  const processor = new MessageProcessor<Material3ComponentImplementation>([...material3Catalogs], (action) => {
     actions.push(action)
   })
   processor.onSurfaceCreated((surface) => {

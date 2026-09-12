@@ -11,7 +11,7 @@ import {
   type SurfaceModel,
 } from '@a2ui/web_core/v0_9'
 
-import { material3Catalog } from '../catalog'
+import { material3Catalogs } from '../catalog'
 import type { Material3ComponentImplementation } from './adapter'
 
 export type A2uiProtocolVersion = 'v0.9' | 'v0.9.1'
@@ -19,7 +19,8 @@ export type A2uiProtocolVersion = 'v0.9' | 'v0.9.1'
 export interface UseA2uiOptions {
   /**
    * Catalogs the processor accepts `createSurface` for. Defaults to the
-   * Material 3 basic catalog. Read once, when the hook first runs.
+   * Material 3 basic and minimal catalogs. Read once, when the hook first
+   * runs.
    */
   readonly catalogs?: readonly Catalog<Material3ComponentImplementation>[]
   /** Called with every client action a surface dispatches (a button's `event`). */
@@ -110,6 +111,9 @@ function createSurfaceStore(processor: MessageProcessor<Material3ComponentImplem
  * `createSurface` messages arrive and disappear on `deleteSurface`; actions
  * from any surface reach `onAction`. On unmount every surface is deleted, so a
  * StrictMode remount starts clean instead of tripping duplicate-surface errors.
+ *
+ * By default the processor accepts both specification catalogs, basic and
+ * minimal, and `getClientCapabilities` advertises both ids.
  */
 export function useA2ui(options: UseA2uiOptions = {}): UseA2uiResult {
   const { catalogs, onAction, onError, version = 'v0.9.1' } = options
@@ -123,7 +127,7 @@ export function useA2ui(options: UseA2uiOptions = {}): UseA2uiResult {
   const [processor] = useState(
     () =>
       new MessageProcessor<Material3ComponentImplementation>(
-        [...(catalogs ?? [material3Catalog])],
+        [...(catalogs ?? material3Catalogs)],
         (action) => onActionRef.current?.(action),
         { version },
       ),

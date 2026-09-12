@@ -1,10 +1,15 @@
 export {
   BASIC_CATALOG_ID,
+  MINIMAL_CATALOG_ID,
   createMaterial3Catalog,
   material3Catalog,
+  material3Catalogs,
   material3Components,
+  material3MinimalCatalog,
+  material3MinimalComponents,
   type CreateMaterial3CatalogOptions,
 } from './catalog'
+export { CapitalizeImplementation } from './catalog/functions'
 export {
   AudioPlayerImplementation,
   ButtonImplementation,

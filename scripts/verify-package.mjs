@@ -103,4 +103,20 @@ for (const name of specComponents) {
 }
 assert.match(catalogSource, /https:\/\/a2ui\.org\/specification\/v0_9\/catalogs\/basic\/catalog\.json/)
 
+// The minimal catalog is a subset of the basic one under its own id. Every
+// component it lists must be a basic component the minimal catalog object
+// registers, and its one function must be implemented here.
+const minimalCatalog = JSON.parse(readFileSync(path.join(root, 'fixtures/minimal/catalog.json'), 'utf8'))
+const minimalSource = catalogSource.slice(catalogSource.indexOf('material3MinimalComponents'))
+assert.ok(minimalSource.length > 0, 'Catalog is missing material3MinimalComponents')
+for (const name of Object.keys(minimalCatalog.components)) {
+  assert.ok(specComponents.includes(name), `Minimal catalog names ${name}, which the basic catalog lacks`)
+  assert.match(minimalSource, new RegExp(`\\b${name}Implementation\\b`), `Minimal catalog is missing ${name}`)
+}
+assert.match(catalogSource, /https:\/\/a2ui\.org\/specification\/v0_9\/catalogs\/minimal\/catalog\.json/)
+const functionsSource = readFileSync(path.join(root, 'src/catalog/functions.ts'), 'utf8')
+for (const name of Object.keys(minimalCatalog.functions)) {
+  assert.match(functionsSource, new RegExp(`name: '${name}'`), `Minimal catalog function ${name} is not implemented`)
+}
+
 console.log('Package boundaries, directives, dependencies, catalog coverage and design-system usage verified.')

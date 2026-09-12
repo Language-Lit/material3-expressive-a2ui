@@ -24,7 +24,9 @@ independent community implementation; it is not affiliated with Google.
 
 - **The whole basic catalog.** All eighteen components of A2UI v0.9.1's
   basic catalog — layout, text, media, cards, tabs, modals, and every input —
-  rendered with Material 3 Expressive components and tokens.
+  rendered with Material 3 Expressive components and tokens. The
+  specification's minimal catalog (five components and `capitalize`) is
+  registered alongside it, so an agent may announce either.
 - **Streaming that shows shape early.** Children the agent names before it
   sends them render as placeholders and fill in as messages arrive.
 - **Two-way binding and validation.** Inputs write straight into the A2UI
@@ -113,13 +115,19 @@ underneath you.
 
 ### Tell the agent what you can render
 
-Send the client capabilities with your first request so the agent picks the
-basic catalog:
+Send the client capabilities with your first request so the agent picks one
+of the catalogs you render:
 
 ```ts
 const capabilities = a2ui.getClientCapabilities()
-// { 'v0.9.1': { supportedCatalogIds: ['https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json'] } }
+// { 'v0.9.1': { supportedCatalogIds: [
+//   'https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json',
+//   'https://a2ui.org/specification/v0_9/catalogs/minimal/catalog.json',
+// ] } }
 ```
+
+Pass `catalogs: [material3Catalog]` to `useA2ui` to advertise the basic
+catalog alone.
 
 When a surface was created with `sendDataModel`, `a2ui.getClientDataModel()`
 returns the model to send back alongside actions.
@@ -220,8 +228,9 @@ token, so surfaces follow your theme in light and dark at any density.
   not used; the package keeps rendering through the render-only contract.
 - **Official surface:** the catalog is tested under `@a2ui/react` `0.11.1`,
   which is not a dependency of this package and needs React 19 itself.
-- **Catalog:** the basic catalog only, by default. Other catalogs need
-  implementations registered through `createMaterial3Catalog`.
+- **Catalog:** the specification's basic and minimal catalogs, by default.
+  Other catalogs need implementations registered through
+  `createMaterial3Catalog`.
 - **Icons:** names outside the catalog's list (and the few Material Symbols
   names the specification's examples use) fall back to a Material Symbols
   ligature, which renders only if your app loads that font.

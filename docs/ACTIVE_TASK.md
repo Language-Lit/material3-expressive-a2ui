@@ -271,6 +271,57 @@ and prove the suite at both ends of the range. Expected files:
   built `dist/index.js` still imports only the two web_core entries, React
   and the design system.
 
+## T05 — The minimal catalog
+
+Status: complete
+Approved: 2026-09-12 (owner: "Ok, let's do them all")
+Completed: 2026-09-12
+
+### Scope and expected files
+
+The specification ships a second catalog, `minimal`, with `Text`, `Row`,
+`Column`, `Button`, `TextField` and one function, `capitalize`. Its
+components are defined with the basic catalog's properties, so the package
+already implements them, but the processor rejected a `createSurface` that
+named the minimal id because only the basic id was registered. Register
+the minimal catalog under its id, implement `capitalize`, advertise both
+ids by default, and cover the minimal examples the way the basic ones are
+covered. Expected files: `src/catalog/functions.ts` (new),
+`src/catalog/index.ts`, `src/index.ts`, `src/runtime/useA2ui.ts`,
+`fixtures/minimal/` (the catalog and its 7 examples, verbatim),
+`fixtures/render.tsx`, `tests/catalog/catalog.test.ts`,
+`tests/runtime/spec-examples.test.tsx`, `tests/runtime/use-a2ui.test.tsx`,
+`scripts/verify-package.mjs`, `playground/examples.ts`,
+`playground/App.tsx`, `README.md`, `docs/SPEC.md`, `docs/ARCHITECTURE.md`,
+`docs/ACTIVE_TASK.md`.
+
+### Acceptance checks
+
+1. `npm run verify` passes, with the verifier checking the minimal
+   catalog's components and function against `fixtures/minimal/catalog.json`.
+2. Every one of the 7 minimal examples renders through the real processor
+   with no unsupported component and no surface error, and the
+   `capitalize` example follows the user's typing.
+3. `useA2ui().getClientCapabilities()` lists the basic id first and the
+   minimal id second.
+4. The playground offers the minimal examples.
+
+### Verification record
+
+- `npm run verify` green: typecheck, 94 tests in 6 files, build, namespace
+  guard and package inspection including the new minimal coverage checks.
+- `capitalize` has no reference implementation in web_core, `@a2ui/react`
+  or `@a2ui/lit` (all three were searched at 0.11). The package follows
+  Python's `str.capitalize`, which the Python agent SDK's authors will
+  expect, and accepts a missing value: the specification's own example
+  binds the argument to a path it never seeds, and rendering an expression
+  error on an empty field would have failed the example test.
+- `zod` stays behind web_core, so the argument schema is composed from the
+  basic `email` argument made optional rather than authored with `z`.
+- `npm run playground:build` passes with the minimal examples listed after
+  the basic ones as "Minimal · <name>", deep-linkable as
+  `?example=minimal/<file>`.
+
 ## Current task
 
 None.

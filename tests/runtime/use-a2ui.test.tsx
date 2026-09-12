@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { message } from '../../fixtures/messages'
 import { wrap } from '../../fixtures/render'
-import { BASIC_CATALOG_ID } from '../../src/catalog'
+import { BASIC_CATALOG_ID, MINIMAL_CATALOG_ID } from '../../src/catalog'
 import { A2uiSurface } from '../../src/runtime/A2uiSurface'
 import { useA2ui, type UseA2uiResult } from '../../src/runtime/useA2ui'
 
@@ -69,7 +69,7 @@ describe('useA2ui', () => {
     let a2ui!: UseA2uiResult
     render(wrap(<Host onReady={(value) => (a2ui = value)} onAction={onAction} onError={onError} />))
 
-    expect(a2ui.getClientCapabilities()['v0.9.1']?.supportedCatalogIds).toEqual([BASIC_CATALOG_ID])
+    expect(a2ui.getClientCapabilities()['v0.9.1']?.supportedCatalogIds).toEqual([BASIC_CATALOG_ID, MINIMAL_CATALOG_ID])
 
     act(() => {
       a2ui.processMessages([message.createSurface('x', { catalogId: 'https://example.com/none.json' })])

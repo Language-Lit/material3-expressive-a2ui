@@ -29,8 +29,11 @@ framework (A2A, a plain fetch, a WebSocket) and is out of scope.
 
 In scope: a Material 3 implementation of every component in the basic catalog
 (`https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json`), a
-`Catalog` that carries them together with the specification's functions, a
-surface component that renders a `SurfaceModel`, and a hook that owns a
+`Catalog` that carries them together with the specification's functions, the
+minimal catalog
+(`https://a2ui.org/specification/v0_9/catalogs/minimal/catalog.json`) built
+from the same implementations plus its `capitalize` function, a surface
+component that renders a `SurfaceModel`, and a hook that owns a
 `MessageProcessor` for a component's lifetime.
 
 Out of scope: transport, agent orchestration, prompt construction,
@@ -87,6 +90,9 @@ ADR.
   - `useA2ui`, `A2uiSurface`, `ROOT_COMPONENT_ID` and their types;
   - `material3Catalog`, `createMaterial3Catalog`, `material3Components`,
     `BASIC_CATALOG_ID`;
+  - `material3MinimalCatalog`, `material3MinimalComponents`,
+    `MINIMAL_CATALOG_ID`, `CapitalizeImplementation`, and
+    `material3Catalogs`, the default registration order;
   - the eighteen `<Name>Implementation` objects;
   - `createMaterial3Component` and the `Material3ComponentImplementation`,
     `A2uiHostProps`, `A2uiRenderProps`, `BuildChild`, `ResolvedProps` types;
@@ -168,7 +174,8 @@ It MUST:
 ### 3.4 The hook
 
 `useA2ui(options)` creates one `MessageProcessor` per mounted component with
-the given catalogs (default: `material3Catalog`), exposes live surfaces as a
+the given catalogs (default: `material3Catalogs`, the basic catalog followed
+by the minimal one), exposes live surfaces as a
 tear-free snapshot, forwards actions to `onAction`, forwards processor and
 surface errors to `onError`, and returns `processMessages`,
 `getClientCapabilities`, `getClientDataModel`, and `clear`. It MUST delete
@@ -186,6 +193,14 @@ MUST NOT mutate the messages it is given: web_core writes bound input into
 each name has an implementation registered. The catalog MUST carry the
 specification's functions (`BASIC_FUNCTIONS`, or a locale-bound copy when
 `createMaterial3Catalog({ locale })` is used).
+
+`material3MinimalCatalog` MUST implement exactly the components and the
+function `fixtures/minimal/catalog.json` lists, reusing the basic
+implementations, and the same script checks it. `capitalize` upper-cases
+the first character and lower-cases the rest, the semantics of Python's
+`str.capitalize`, and returns an empty string for a missing value so the
+specification's own example renders without an expression error before the
+user has typed.
 
 ## 4. Rendering rules
 

@@ -126,6 +126,15 @@ variant: a different id for a host that publishes its own catalog, extra
 components, replaced functions, or the specification's functions bound to a
 locale for `formatCurrency`, `formatDate` and friends.
 
+`material3MinimalCatalog` is the specification's minimal catalog — `Text`,
+`Row`, `Column`, `Button`, `TextField` and the function `capitalize` — built
+from the same five implementation objects under the minimal catalog id. The
+minimal catalog defines those components with the basic catalog's
+properties, so nothing is duplicated; only `capitalize`
+(`src/catalog/functions.ts`) is new, since web_core ships no implementation
+for it. `material3Catalogs` lists both catalogs in the order `useA2ui`
+registers them, and a `createSurface` naming either id is accepted.
+
 Each component is a directory of `<Name>.tsx`, `<Name>.css`, and `index.ts`:
 
 | A2UI component | Renders | Notes |
@@ -173,12 +182,14 @@ web_core's validation, models, binding and function evaluation, so a passing
 test says something about behaviour against a real agent.
 
 `fixtures/examples/` holds the specification's own 43 example streams, and
-`fixtures/catalog.json` its basic catalog. One test renders every example and
+`fixtures/catalog.json` its basic catalog; `fixtures/minimal/` holds the
+minimal catalog and its 7 examples. One test renders every example and
 asserts no unsupported component and no surface error; others assert
 specific behaviour — a login form's fields, a `ChildList` template's
-expansion, the Markdown example. The catalog test compares the implemented
-component set and the icon enum against `catalog.json`, so an upstream change
-shows up as a failing test rather than a silent gap.
+expansion, the Markdown example, `capitalize` following the user's typing.
+The catalog test compares the implemented component sets and the icon enum
+against the two `catalog.json` files, so an upstream change shows up as a
+failing test rather than a silent gap.
 
 The playground (`npm run playground`) streams the same examples one message
 at a time through `useA2ui` and `A2uiSurface`, with an action and error log,
