@@ -583,6 +583,43 @@ cross-repository permission question. Do not edit installed peers.
   handling, callback versus throw behavior, and valid wrapper/custom-catalog
   processing. The focused runtime file passes (7 tests).
 
+### T10 integration evidence (2026-09-12)
+
+- The completed workstreams are recorded by commit: `d5579fc` (streaming
+  diagnostics), `6232460` (pre-processor envelope validation), `b261b8b`
+  (pinned conformance vectors and rendered invariants), and `38af67e`
+  (generated catalog delivery).
+- The parent verification run covered 129 tests: 120 conformance cases and 9
+  diagnostics/runtime cases. `node scripts/update-conformance.mjs` reproduces
+  the pinned fixtures. Coverage boundaries and exclusions are documented in
+  [CONFORMANCE.md](CONFORMANCE.md).
+- Catalog generation and hosting preparation are documented in
+  [CATALOG_DELIVERY.md](CATALOG_DELIVERY.md); external v1 runtime, picker, and
+  documentation-site deployment work remains pending as described in
+  [UPSTREAM_TASKS.md](UPSTREAM_TASKS.md). No live hosting or v1 support claim
+  is made here.
+
+### Final package QA (2026-09-12)
+
+- The parent verification run passes `npm run verify`: 271 tests in 14 files,
+  typecheck, build, package-boundary checks, and catalog verification. The
+  playground build also passes.
+- The built static catalog route returns HTTP 200 with `application/json`; its
+  69,596 bytes match the checked-in public artifact and contain 27 components,
+  25 functions, and 130 canonical references.
+- Production Chromium checks cover login validation and actions, Material
+  controls, actions, tooltip, and carousel in light and dark modes; the 390px
+  layout has no horizontal overflow and no page errors.
+- The isolated floor run with `@a2ui/web_core` 0.10.7 and Material 1.2.0
+  passes 268 tests with one expected upstream malformed-numeric parser failure
+  (269 tests in 13 files). The two official-surface tests are excluded because
+  `@a2ui/react` 0.11.1 requires web_core 0.11. Typecheck, build,
+  package-boundary, and catalog checks are green; see
+  [CONFORMANCE.md](CONFORMANCE.md) for the coverage boundary.
+- T10 remains active while the external v1 runtime, Material picker, and
+  documentation-site hosting scopes in [UPSTREAM_TASKS.md](UPSTREAM_TASKS.md)
+  remain pending and their ownership questions are unresolved.
+
 ## Current task
 
 T10.
