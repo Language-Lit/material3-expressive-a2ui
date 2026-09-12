@@ -109,8 +109,10 @@ web_core's API. CI verifies both by inspecting sources and the built chunk.
 
 ### 2.2 Protocol version
 
-The package targets A2UI **v0.9.1** through web_core `^0.10.7`. `useA2ui`
-defaults the processor to `v0.9.1` and MAY be told `v0.9`. The catalog id
+The package targets A2UI **v0.9.1** through web_core `^0.10.7 || ^0.11.0`.
+The suite MUST pass at the range's floor as well as at the version the
+lockfile pins, so a consumer on either minor gets the same behaviour.
+`useA2ui` defaults the processor to `v0.9.1` and MAY be told `v0.9`. The catalog id
 defaults to the specification's basic catalog id, so an agent that announces
 that id in `createSurface` is accepted without configuration.
 

@@ -231,6 +231,46 @@ announcement thread, not package or repository contents.
 - `files` in `package.json` is unchanged, so the tarball still carries
   only `dist`.
 
+## T04 — web_core 0.11 and @a2ui/react 0.11.1
+
+Status: complete
+Approved: 2026-09-12 (owner: "Ok, let's do them all. Commit after each one",
+on the assessment that listed this item first)
+Completed: 2026-09-12
+
+### Scope and expected files
+
+`@a2ui/web_core` 0.11.0 was published on 2026-09-12 and `@a2ui/react` is at
+0.11.1. The peer range `^0.10.7` excluded the new minor, so a fresh install
+warned. Widen the peer range to `^0.10.7 || ^0.11.0`, pin the development
+dependency to 0.11.0, move the compatibility test to `@a2ui/react` 0.11.1,
+and prove the suite at both ends of the range. Expected files:
+`package.json`, `package-lock.json`, `README.md`, `docs/SPEC.md`,
+`docs/ACTIVE_TASK.md`.
+
+### Acceptance checks
+
+1. `npm run verify` passes with web_core 0.11.0 and `@a2ui/react` 0.11.1.
+2. The unit suite passes with web_core 0.10.7 installed in place of 0.11.0
+   (the official-surface test excepted, since `@a2ui/react` 0.11.1 depends
+   on web_core 0.11 itself).
+3. Both web_core entries import in plain Node, so server rendering of a
+   `'use client'` module that imports them still works.
+
+### Verification record
+
+- `npm run verify` green on 0.11.0 / 0.11.1: typecheck, 79 tests in 6
+  files, build, namespace guard, package inspection. No source change was
+  needed: the render-only contract is untouched by 0.11's node layer, and
+  the official surface still renders `render`-only implementations.
+- With web_core 0.10.7 swapped in (`npm i --no-save`), 78 tests in 5 files
+  pass; the lockfile state was restored with `npm ci` afterwards.
+- web_core 0.11.0 adds `lit` and `@lit/context` as dependencies and ships
+  Web Component implementations from the `basic_catalog` entry. Both
+  entries import cleanly in Node 22 (lit installs its DOM shim), and the
+  built `dist/index.js` still imports only the two web_core entries, React
+  and the design system.
+
 ## Current task
 
 None.

@@ -213,10 +213,12 @@ token, so surfaces follow your theme in light and dark at any density.
 
 - **React / React DOM:** 18 or 19.
 - **Material 3 Expressive:** `^1.2.0`.
-- **A2UI:** protocol v0.9.1 through `@a2ui/web_core` `^0.10.7`; tested with
-  `0.10.7`. v0.9 is accepted with `useA2ui({ version: 'v0.9' })`. The
-  v0.8 protocol and its catalog are not supported.
-- **Official surface:** the catalog is tested under `@a2ui/react` `0.11.0`,
+- **A2UI:** protocol v0.9.1 through `@a2ui/web_core` `^0.10.7 || ^0.11.0`;
+  tested with `0.11.0` and at the `0.10.7` floor. v0.9 is accepted with
+  `useA2ui({ version: 'v0.9' })`. The v0.8 protocol and its catalog are not
+  supported. web_core 0.11's node layer and its Web Component catalog are
+  not used; the package keeps rendering through the render-only contract.
+- **Official surface:** the catalog is tested under `@a2ui/react` `0.11.1`,
   which is not a dependency of this package and needs React 19 itself.
 - **Catalog:** the basic catalog only, by default. Other catalogs need
   implementations registered through `createMaterial3Catalog`.
