@@ -650,6 +650,14 @@ cannot install that candidate alongside the renderer. `0.2.1` adds the explicit
 the intended latest release and supersedes `0.2.0`; publication verification is
 pending.
 
+Release verification (2026-09-12): `0.2.1` was published as `latest` from
+commit `485d08a`, with registry shasum
+`f475aeadfa037e95345bafb1e8b4fca53b455a43`. A clean npm installation of
+`@language-lit/material3-expressive-a2ui@0.2.1` with
+`@language-lit/material3-expressive@1.3.0-rc.1`, web_core, React, and React
+DOM resolves without peer-dependency overrides and imports the renderer and
+picker exports. The pushed `v0.2.1` tag points at that published commit.
+
 ## Current task
 
 T10.
