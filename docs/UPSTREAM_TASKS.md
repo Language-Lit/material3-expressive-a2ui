@@ -97,8 +97,17 @@ Acceptance checks:
 
 ## Material 3 Expressive date/time picker
 
-Owner: `Language-Lit/material3-expressive`. This package must not edit that
-repository or installed peer files.
+Owner: `Language-Lit/material3-expressive`. Cross-repository implementation
+requires an explicitly approved task in that repository; the picker task was
+owner-authorized on 2026-09-12. Installed peer files remain read-only.
+
+Status (2026-09-12): owner-authorized upstream implementation is complete on
+the design-system task branch. `DatePicker`, `DateRangePicker`, `TimePicker`,
+and `DateTimePicker` have public root exports, token-only styles, source
+traceability, and focused unit/browser gates there. They remain experimental
+and are not in the currently released 1.2 line. This renderer therefore uses
+public capability detection and retains its sanctioned native 1.2 fallback;
+promotion and a released picker floor remain upstream release work.
 
 Expected scope follows the design system's existing component directories and
 root entry: add conformant date, time, and date-time picker components (the
@@ -114,15 +123,22 @@ Acceptance checks:
   conversion.
 - Calendar and time selection pass light/dark, density, reduced-motion, and
   SSR/hydration checks.
-- The released root entry and stylesheet contain the picker. A separately
-  approved package task can then replace this renderer's sanctioned native
-  `DateTimeInput`; picker work is independent of A2UI v1 protocol support.
+- A released root entry and stylesheet contain the picker. This renderer's
+  approved bridge already prefers those exports and is independently tested
+  with the picker-bearing package and the released native-fallback floor;
+  picker work remains independent of A2UI v1 protocol support.
 
 ## Documentation-site catalog hosting
 
 Owner: the repository that builds `m3e.language-lit.com`. The renderer
 package stages `public/a2ui/catalogs/material3/catalog.json`; the site build
 must publish that artifact at `/a2ui/catalogs/material3/catalog.json`.
+
+Status (2026-09-12): implemented on the owner-authorized site task branch.
+The build copies the canonical bytes, records source revision and SHA-256
+provenance, rejects drift in the normal site check, and emits the route from a
+clean checkout without this sibling package. Production deployment remains a
+separate owner action; no live-hosting claim is made here.
 
 Acceptance checks:
 

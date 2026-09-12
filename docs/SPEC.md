@@ -56,8 +56,9 @@ the library's rules apply here without exception:
 - Every color, type style, corner, duration, easing, elevation, and state
   opacity MUST resolve to an `--m3e-*` token.
 - Components that the design system already ships MUST be used rather than
-  re-implemented. The single exception is `DateTimeInput`'s native input
-  (§4.3), allowlisted by name in the verifier.
+  re-implemented. `DateTimeInput` MUST use the public date/time picker exports
+  when they exist. Its native compatibility path for the declared `^1.2.0`
+  floor is allowlisted by name in the verifier (§4.3).
 
 Consumers MUST import `@language-lit/material3-expressive/styles.css` and mount
 `Material3Provider` themselves; this package neither re-exports nor re-bundles
@@ -271,13 +272,25 @@ inline; an image path renders an `<img>`. Any other name falls back to a
 Material Symbols ligature and is documented as requiring the host to load
 that font.
 
-### 4.3 The native date input
+### 4.3 Date and time picker bridge
 
-`DateTimeInput` renders `<input type="date|time|datetime-local">` styled with
-the outlined text field's tokens, because the design system ships no picker.
-Values are ISO 8601 in both directions. A value with an explicit offset is
-shown in the user's zone and sent back as a UTC instant; one without is taken
-as written.
+`DateTimeInput` MUST render the design system's public `DatePicker` for
+date-only input, `TimePicker` for time-only input, and `DateTimePicker` for
+combined input whenever those exports exist. It uses modal presentation,
+maps protocol bounds to picker bounds, shows failed checks after touch through
+the picker's error and supporting-text API, and forwards the accessibility
+description to the field.
+
+The declared `^1.2.0` peer floor has no picker exports. Under that floor only,
+the component renders `<input type="date|time|datetime-local">` styled with
+the outlined text field's tokens. The verifier allowlists that compatibility
+path in this file only. Values remain ISO 8601 in both paths. A value with an
+explicit offset is shown in the user's zone and sent back as a UTC instant;
+one without an offset is taken as written. An incomplete or cleared combined
+draft MUST clear the bound value without inventing a missing part. Its next
+complete local value MUST retain the last authoritative value's instant or
+civil representation; a distinct external model update replaces that
+preference.
 
 ### 4.4 Layout
 

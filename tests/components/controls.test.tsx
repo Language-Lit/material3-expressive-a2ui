@@ -1,4 +1,5 @@
-import { screen, waitFor } from '@testing-library/react'
+import * as Material3 from '@language-lit/material3-expressive'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 
@@ -10,6 +11,14 @@ import { sliderPrecision, stepPrecision } from '../../src/components/Slider/Slid
 import { resolveIconGlyph, toCatalogIconName } from '../../src/internal/icons'
 
 const SURFACE = 'controls'
+const pickerCapabilities = Material3 as unknown as {
+  readonly DatePicker?: unknown
+  readonly TimePicker?: unknown
+  readonly DateTimePicker?: unknown
+}
+const hasPickerCapabilities = Boolean(
+  pickerCapabilities.DatePicker && pickerCapabilities.TimePicker && pickerCapabilities.DateTimePicker,
+)
 
 describe('ChoicePicker', () => {
   it('keeps one value when mutually exclusive and renders radios', async () => {
@@ -101,7 +110,7 @@ describe('Slider', () => {
 })
 
 describe('DateTimeInput', () => {
-  it('picks the native input type from the enabled parts', () => {
+  it('maps enabled parts to Material pickers when available and the native floor fallback otherwise', () => {
     const { container } = renderSurface([
       message.createSurface(SURFACE),
       message.updateComponents(SURFACE, [
@@ -111,10 +120,165 @@ describe('DateTimeInput', () => {
         { id: 'dt', component: 'DateTimeInput', label: 'When', enableDate: true, enableTime: true, value: '2026-09-11T14:30:00' },
       ]),
     ])
-    const inputs = [...container.querySelectorAll('input')]
-    expect(inputs.map((input) => input.type)).toEqual(['date', 'time', 'datetime-local'])
-    expect(inputs.map((input) => input.value)).toEqual(['2026-09-11', '14:30', '2026-09-11T14:30'])
-    expect(screen.getByLabelText('Day')).toBe(inputs[0])
+    const fallbackInputs = [...container.querySelectorAll('.m3e-a2ui-datetime__input')]
+    expect(fallbackInputs.length > 0).toBe(!hasPickerCapabilities)
+    if (fallbackInputs.length > 0) {
+      expect(fallbackInputs.map((input) => (input as HTMLInputElement).type))
+        .toEqual(['date', 'time', 'datetime-local'])
+      expect(fallbackInputs.map((input) => (input as HTMLInputElement).value))
+        .toEqual(['2026-09-11', '14:30', '2026-09-11T14:30'])
+      expect(screen.getByLabelText('Day')).toBe(fallbackInputs[0])
+      return
+    }
+
+    expect((screen.getByRole('textbox', { name: 'Day' }) as HTMLInputElement).value)
+      .toBe('Sep 11, 2026')
+    expect((screen.getByRole('textbox', { name: 'Hour' }) as HTMLInputElement).value)
+      .toBe('14:30')
+    const combined = screen.getByRole('group', { name: 'When' })
+    expect((within(combined).getByRole('textbox', { name: 'Date' }) as HTMLInputElement).value)
+      .toBe('Sep 11, 2026')
+    expect((within(combined).getByRole('textbox', { name: 'Time' }) as HTMLInputElement).value)
+      .toBe('14:30')
+    expect((combined.querySelector('input[type="hidden"]') as HTMLInputElement).value)
+      .toBe('2026-09-11T14:30')
+  })
+
+  it('enforces mapped date bounds before a modal selection reaches the protocol model', async () => {
+    const user = userEvent.setup()
+    const { container, surface } = renderSurface([
+      message.createSurface(SURFACE),
+      message.updateComponents(SURFACE, [
+        {
+          id: 'root',
+          component: 'DateTimeInput',
+          label: 'Travel day',
+          enableDate: true,
+          min: '2026-09-10',
+          max: '2026-09-15',
+          value: { path: '/day' },
+        },
+      ]),
+      message.updateDataModel(SURFACE, { day: '2026-09-11' }),
+    ])
+
+    if (container.querySelector('.m3e-a2ui-datetime__input')) return
+
+    await user.click(screen.getByRole('textbox', { name: 'Travel day' }))
+    const beforeMinimum = await screen.findByRole('button', { name: /September 9, 2026/ })
+    expect(beforeMinimum.getAttribute('aria-disabled')).toBe('true')
+    await user.click(beforeMinimum)
+    expect(surface.dataModel.get('/day')).toBe('2026-09-11')
+
+    await user.click(screen.getByRole('button', { name: /September 12, 2026/ }))
+    await user.click(screen.getByRole('button', { name: 'OK' }))
+    await waitFor(() => expect(surface.dataModel.get('/day')).toBe('2026-09-12'))
+  })
+
+  it('writes picker changes through the real protocol binding', async () => {
+    const { surface } = renderSurface([
+      message.createSurface(SURFACE),
+      message.updateComponents(SURFACE, [
+        {
+          id: 'root',
+          component: 'DateTimeInput',
+          label: 'Start time',
+          enableTime: true,
+          value: { path: '/start' },
+        },
+      ]),
+      message.updateDataModel(SURFACE, { start: '09:15' }),
+    ])
+
+    fireEvent.change(screen.getByLabelText('Start time'), { target: { value: '10:45' } })
+    await waitFor(() => expect(surface.dataModel.get('/start')).toBe('10:45'))
+  })
+
+  it('reflects external protocol updates and clears in either rendering path', async () => {
+    const { container, processor } = renderSurface([
+      message.createSurface(SURFACE),
+      message.updateComponents(SURFACE, [
+        {
+          id: 'root',
+          component: 'DateTimeInput',
+          label: 'Review day',
+          enableDate: true,
+          value: { path: '/day' },
+        },
+      ]),
+      message.updateDataModel(SURFACE, { day: '2026-09-11' }),
+    ])
+    const field = (hasPickerCapabilities
+      ? screen.getByRole('textbox', { name: 'Review day' })
+      : screen.getByLabelText('Review day')) as HTMLInputElement
+    const initialVisibleValue = field.value
+
+    act(() => processor.processMessages([message.updateDataModel(SURFACE, '2026-10-05', '/day')]))
+    await waitFor(() => expect(field.value).not.toBe(initialVisibleValue))
+    if (container.querySelector('.m3e-a2ui-datetime__input')) {
+      expect(field.value).toBe('2026-10-05')
+    } else {
+      expect(field.value).toContain('2026')
+    }
+
+    act(() => processor.processMessages([message.updateDataModel(SURFACE, '', '/day')]))
+    await waitFor(() => expect(field.value).toBe(''))
+  })
+
+  it('dispatches an action context with the date-time value edited through the protocol binding', async () => {
+    const user = userEvent.setup()
+    const { actions } = renderSurface([
+      message.createSurface(SURFACE),
+      message.updateComponents(SURFACE, [
+        { id: 'root', component: 'Column', children: ['time', 'save'] },
+        {
+          id: 'time',
+          component: 'DateTimeInput',
+          label: 'Meeting time',
+          enableTime: true,
+          value: { path: '/meeting' },
+        },
+        {
+          id: 'save',
+          component: 'Button',
+          child: 'save-label',
+          action: { event: { name: 'save', context: { meeting: { path: '/meeting' } } } },
+        },
+        { id: 'save-label', component: 'Text', text: 'Save' },
+      ]),
+      message.updateDataModel(SURFACE, { meeting: '09:15' }),
+    ])
+
+    fireEvent.change(screen.getByLabelText('Meeting time'), { target: { value: '10:45' } })
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    expect(actions).toHaveLength(1)
+    expect(actions[0]).toMatchObject({ name: 'save', context: { meeting: '10:45' } })
+  })
+
+  it('maps accessibility descriptions and touched protocol validation to either path', async () => {
+    renderSurface([
+      message.createSurface(SURFACE),
+      message.updateComponents(SURFACE, [
+        {
+          id: 'root',
+          component: 'DateTimeInput',
+          label: 'Deadline',
+          enableDate: true,
+          value: '2026-09-11',
+          accessibility: { description: 'Use the project time zone.' },
+          checks: [{ condition: { path: '/valid' }, message: 'Choose a later date.' }],
+        },
+      ]),
+      message.updateDataModel(SURFACE, { valid: false }),
+    ])
+
+    const field = hasPickerCapabilities
+      ? screen.getByRole('textbox', { name: 'Deadline' })
+      : screen.getByLabelText('Deadline')
+    expect(field.getAttribute('aria-description')).toBe('Use the project time zone.')
+    expect(screen.queryByText('Choose a later date.')).toBeNull()
+    fireEvent.blur(field)
+    await waitFor(() => expect(screen.getByText('Choose a later date.')).toBeDefined())
   })
 
   it('reduces ISO 8601 values to what each picker accepts', () => {
@@ -143,6 +307,51 @@ describe('DateTimeInput', () => {
     )
     expect(fromPickerValue('2026-09-11T14:30', 'datetime-local', '2026-09-11T09:00:00')).toBe('2026-09-11T14:30')
     expect(fromPickerValue('2026-09-11', 'date', '2026-09-10T00:00:00Z')).toBe('2026-09-11')
+  })
+
+  it('preserves representation through a combined partial draft and resets it on external data', async () => {
+    const instant = new Date('2026-09-11T14:30:00Z')
+    const pad = (part: number) => String(part).padStart(2, '0')
+    const localDate = `${instant.getFullYear()}-${pad(instant.getMonth() + 1)}-${pad(instant.getDate())}`
+    const nextMinute = instant.getMinutes() === 31 ? 32 : 31
+    const nextTime = `${pad(instant.getHours())}:${pad(nextMinute)}`
+    const expected = new Date(`${localDate}T${nextTime}`).toISOString()
+    const { container, processor, surface } = renderSurface([
+      message.createSurface(SURFACE),
+      message.updateComponents(SURFACE, [
+        {
+          id: 'root',
+          component: 'DateTimeInput',
+          label: 'Departure',
+          enableDate: true,
+          enableTime: true,
+          value: { path: '/departure' },
+        },
+      ]),
+      message.updateDataModel(SURFACE, { departure: instant.toISOString() }),
+    ])
+
+    if (container.querySelector('.m3e-a2ui-datetime__input')) return
+
+    const picker = screen.getByRole('group', { name: 'Departure' })
+    const time = within(picker).getByRole('textbox', { name: 'Time' }) as HTMLInputElement
+    fireEvent.change(time, { target: { value: String(instant.getHours()).slice(0, 1) } })
+    await waitFor(() => expect(surface.dataModel.get('/departure')).toBe(''))
+    expect(time.value).toHaveLength(1)
+
+    fireEvent.change(time, {
+      target: { value: nextTime },
+    })
+    await waitFor(() => expect(surface.dataModel.get('/departure')).toBe(expected))
+
+    act(() => processor.processMessages([
+      message.updateDataModel(SURFACE, '2026-10-05T09:15', '/departure'),
+    ]))
+    await waitFor(() => expect(time.value).toBe('09:15'))
+    fireEvent.change(time, { target: { value: '1' } })
+    await waitFor(() => expect(surface.dataModel.get('/departure')).toBe(''))
+    fireEvent.change(time, { target: { value: '10:45' } })
+    await waitFor(() => expect(surface.dataModel.get('/departure')).toBe('2026-10-05T10:45'))
   })
 })
 

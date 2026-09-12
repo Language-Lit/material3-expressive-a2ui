@@ -1,6 +1,14 @@
-import { Text as MaterialText } from '@language-lit/material3-expressive'
+import * as Material3 from '@language-lit/material3-expressive'
 import { DateTimeInputApi } from '@a2ui/web_core/v0_9/basic_catalog'
-import { useState } from 'react'
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ComponentType,
+  type CSSProperties,
+  type FocusEventHandler,
+  type ReactNode,
+} from 'react'
 
 import { referencedSchema } from '../../internal/catalogSchemas'
 import { isInvalid, validationMessage } from '../../internal/checks'
@@ -20,6 +28,33 @@ const api = {
 }
 
 type PickerType = 'date' | 'time' | 'datetime-local'
+
+interface PickerCapabilityProps {
+  readonly label: ReactNode
+  readonly value: string
+  readonly onValueChange: (value: string) => void
+  readonly min?: string
+  readonly max?: string
+  readonly presentation?: 'modal'
+  readonly error?: boolean
+  readonly supportingText?: ReactNode
+  readonly style?: CSSProperties
+  readonly onBlur?: FocusEventHandler<HTMLInputElement>
+  readonly 'aria-description'?: string
+}
+
+type PickerCapability = ComponentType<PickerCapabilityProps>
+
+/**
+ * Picker exports arrived after the current Material peer floor. A namespace
+ * capability check keeps the 1.2 fallback loadable without asking the ESM
+ * linker for names that release does not export.
+ */
+const materialPickerCapabilities = Material3 as typeof Material3 & {
+  readonly DatePicker?: PickerCapability
+  readonly TimePicker?: PickerCapability
+  readonly DateTimePicker?: PickerCapability
+}
 
 interface WallClock {
   readonly date?: string
@@ -53,7 +88,7 @@ function literalWallClock(value: string): WallClock {
 }
 
 /**
- * Reduces an ISO 8601 value to what the native picker of `type` accepts.
+ * Reduces an ISO 8601 value to the civil shape the picker of `type` accepts.
  * A value with an explicit offset is an instant and is shown in the user's
  * own time zone; one without is taken as written.
  */
@@ -76,49 +111,89 @@ export function fromPickerValue(picked: string, type: PickerType, previous: stri
   return Number.isNaN(instant.getTime()) ? picked : instant.toISOString()
 }
 
+function pickerFor(type: PickerType): PickerCapability | undefined {
+  if (type === 'date') return materialPickerCapabilities.DatePicker
+  if (type === 'time') return materialPickerCapabilities.TimePicker
+  return materialPickerCapabilities.DateTimePicker
+}
+
 /**
- * The base library has no date or time picker yet, so this is the one
- * component that renders a native input, dressed in the outlined text field's
- * tokens. Values stay ISO 8601 in both directions, as the catalog requires.
+ * Uses the peer's Material picker when that optional capability exists. The
+ * native input remains as a compatibility fallback for the declared 1.2 peer
+ * floor, which predates the picker exports.
  */
 export const DateTimeInputImplementation = createMaterial3Component(api, ({ props }) => {
   const enableDate = props.enableDate === true
   const enableTime = props.enableTime === true
   const type: PickerType =
     enableDate && !enableTime ? 'date' : enableTime && !enableDate ? 'time' : 'datetime-local'
-  const [value, setValue] = useBoundValue(asText(props.value), props.setValue)
+  const boundValue = asText(props.value)
+  const [value, setValue] = useBoundValue(boundValue, props.setValue)
+  const representationValue = useRef(boundValue)
+  const observedBoundValue = useRef(boundValue)
+  const lastLocalWrite = useRef<string | undefined>(undefined)
+  useEffect(() => {
+    if (boundValue === observedBoundValue.current) return
+    const isLocalEcho = boundValue === lastLocalWrite.current
+    observedBoundValue.current = boundValue
+    lastLocalWrite.current = undefined
+    if (!isLocalEcho) representationValue.current = boundValue
+  }, [boundValue])
   const [touched, setTouched] = useState(false)
   const showError = touched && isInvalid(props)
   const message = showError ? validationMessage(props) : undefined
   const fallbackLabel = type === 'date' ? 'Date' : type === 'time' ? 'Time' : 'Date and time'
   const label = asText(props.label) || asText(props.accessibility?.label) || fallbackLabel
+  const description = asText(props.accessibility?.description) || undefined
+  const MaterialPicker = pickerFor(type)
+  const writePickerValue = (picked: string) => {
+    setTouched(true)
+    const next = fromPickerValue(picked, type, representationValue.current)
+    lastLocalWrite.current = next
+    setValue(next)
+  }
+
+  if (MaterialPicker) {
+    return (
+      <MaterialPicker
+        label={label}
+        value={toPickerValue(value, type)}
+        onValueChange={writePickerValue}
+        min={toPickerValue(asText(props.min), type) || undefined}
+        max={toPickerValue(asText(props.max), type) || undefined}
+        presentation="modal"
+        error={showError}
+        supportingText={message}
+        style={weightStyle(props.weight)}
+        onBlur={() => setTouched(true)}
+        aria-description={description}
+      />
+    )
+  }
 
   return (
     <label
       className={cx('m3e-a2ui-datetime', showError && 'm3e-a2ui-datetime--error')}
       style={weightStyle(props.weight)}
     >
-      <MaterialText as="span" variant="bodySmall" className="m3e-a2ui-datetime__label">
+      <Material3.Text as="span" variant="bodySmall" className="m3e-a2ui-datetime__label">
         {label}
-      </MaterialText>
+      </Material3.Text>
       <input
         className="m3e-a2ui-datetime__input"
         type={type}
         value={toPickerValue(value, type)}
         min={toPickerValue(asText(props.min), type) || undefined}
         max={toPickerValue(asText(props.max), type) || undefined}
-        onChange={(event) => {
-          setTouched(true)
-          setValue(fromPickerValue(event.target.value, type, value))
-        }}
+        onChange={(event) => writePickerValue(event.target.value)}
         onBlur={() => setTouched(true)}
         aria-invalid={showError || undefined}
-        aria-description={asText(props.accessibility?.description) || undefined}
+        aria-description={description}
       />
       {message ? (
-        <MaterialText as="span" variant="bodySmall" className="m3e-a2ui-field-error">
+        <Material3.Text as="span" variant="bodySmall" className="m3e-a2ui-field-error">
           {message}
-        </MaterialText>
+        </Material3.Text>
       ) : null}
     </label>
   )

@@ -1,3 +1,4 @@
+/* Compatibility presentation for Material 1.2, which has no picker exports. */
 .m3e-a2ui-datetime {
   display: flex;
   flex-direction: column;

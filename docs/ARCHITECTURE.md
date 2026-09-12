@@ -177,7 +177,7 @@ Each component is a directory of `<Name>.tsx`, `<Name>.css`, and `index.ts`:
 | `CheckBox` | `Checkbox` in a `<label>` | two-way bound. |
 | `ChoicePicker` | `Radio`, `Checkbox`, or filter `Chip` | `mutuallyExclusive` → radios; `displayStyle: chip` → chips; optional filter field; value is always a `string[]`. |
 | `Slider` | `Slider` | fills its parent; precision from the range (hundredths ≤ 1, tenths ≤ 10, otherwise whole numbers); with `steps` (v1.0) the value snaps to the divisions and the precision follows the step. |
-| `DateTimeInput` | native `<input type="date/time/datetime-local">` | the one sanctioned native control; ISO 8601 both ways, zone-aware. |
+| `DateTimeInput` | `DatePicker`, `TimePicker`, or `DateTimePicker`; native compatibility input on the 1.2 floor | capability selected from enabled parts; modal; ISO 8601 both ways, zone-aware. |
 
 ### Two rules the components never break
 
@@ -246,6 +246,14 @@ first native control and gives that element to the peer, which owns hover,
 focus, Escape, positioning and `aria-describedby`. The observer also handles
 late children and replacement, and disconnects on unmount. The wrapper is
 never made focusable. Tooltip text is plain non-interactive text.
+
+`DateTimeInput` imports the peer root as a namespace because the declared
+Material 1.2 floor does not export pickers. It selects the optional public
+picker capability at runtime, while its local TypeScript shape contains only
+the common props this renderer supplies. This makes the same built renderer
+load against both the released floor and picker-bearing releases without a
+deep import or a patched peer. Once the declared floor includes a released
+picker, this compatibility branch can be retired.
 
 The package-authored trip-planner fixture lives in `fixtures/material/`,
 separate from the verbatim specification fixtures. Its carousel expands a

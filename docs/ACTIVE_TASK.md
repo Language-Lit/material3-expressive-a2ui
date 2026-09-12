@@ -587,23 +587,30 @@ cross-repository permission question. Do not edit installed peers.
 
 - The completed workstreams are recorded by commit: `d5579fc` (streaming
   diagnostics), `6232460` (pre-processor envelope validation), `b261b8b`
-  (pinned conformance vectors and rendered invariants), and `38af67e`
-  (generated catalog delivery).
+  (pinned conformance vectors and rendered invariants), `38af67e`
+  (generated catalog delivery), and upstream `33bb4a7` (byte-identical static
+  catalog hosting with provenance and build-time integrity checks).
 - The parent verification run covered 129 tests: 120 conformance cases and 9
   diagnostics/runtime cases. `node scripts/update-conformance.mjs` reproduces
   the pinned fixtures. Coverage boundaries and exclusions are documented in
   [CONFORMANCE.md](CONFORMANCE.md).
 - Catalog generation and hosting preparation are documented in
-  [CATALOG_DELIVERY.md](CATALOG_DELIVERY.md); external v1 runtime, picker, and
-  documentation-site deployment work remains pending as described in
-  [UPSTREAM_TASKS.md](UPSTREAM_TASKS.md). No live hosting or v1 support claim
+  [CATALOG_DELIVERY.md](CATALOG_DELIVERY.md). The owner-authorized site branch
+  now builds the exact artifact at `/a2ui/catalogs/material3/catalog.json`
+  without this package at build or runtime. Deployment, the external v1
+  runtime, and picker promotion/release remain pending as described in
+  [UPSTREAM_TASKS.md](UPSTREAM_TASKS.md). No live-hosting or v1 support claim
   is made here.
 
 ### Final package QA (2026-09-12)
 
-- The parent verification run passes `npm run verify`: 271 tests in 14 files,
-  typecheck, build, package-boundary checks, and catalog verification. The
-  playground build also passes.
+- The picker integration verification passes `npm run verify` against both a
+  picker-bearing owner build and the genuine registry 1.2.2 fallback: 277
+  tests in 14 files, typecheck, build, package-boundary checks, and catalog
+  verification. The real protocol tests cover modal bounds and selection,
+  external update/clear, edited action context, touched validation,
+  accessibility description, and civil/zoned combined values. The playground
+  build also passes.
 - The built static catalog route returns HTTP 200 with `application/json`; its
   69,596 bytes match the checked-in public artifact and contain 27 components,
   25 functions, and 130 canonical references.
@@ -616,9 +623,12 @@ cross-repository permission question. Do not edit installed peers.
   `@a2ui/react` 0.11.1 requires web_core 0.11. Typecheck, build,
   package-boundary, and catalog checks are green; see
   [CONFORMANCE.md](CONFORMANCE.md) for the coverage boundary.
-- T10 remains active while the external v1 runtime, Material picker, and
-  documentation-site hosting scopes in [UPSTREAM_TASKS.md](UPSTREAM_TASKS.md)
-  remain pending and their ownership questions are unresolved.
+- T10 remains active while the external v1 runtime, Material picker
+  promotion/release, and documentation-site deployment scopes in
+  [UPSTREAM_TASKS.md](UPSTREAM_TASKS.md) remain pending. Material picker and
+  site implementation ownership is resolved, and their authorized preparatory
+  work is complete. The v1 runtime remains a separate upstream project; no v1
+  runtime is implemented or claimed here.
 
 ## Current task
 

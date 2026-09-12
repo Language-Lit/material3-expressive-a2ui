@@ -279,7 +279,7 @@ checks the dispatched action. Note that `@a2ui/react` itself requires React
 | `CheckBox` | `Checkbox` | |
 | `ChoicePicker` | `Radio`, `Checkbox`, or filter `Chip` | exclusive or multiple; optional filter field. |
 | `Slider` | `Slider` | precision follows the range; `steps` (v1.0) snaps to divisions. |
-| `DateTimeInput` | native date/time input in Material tokens | the design system has no picker yet; ISO 8601 both ways, zone-aware. |
+| `DateTimeInput` | `DatePicker`, `TimePicker`, or `DateTimePicker` when available | date-only, time-only, and combined modes; modal; ISO 8601 both ways and zone-aware. Material 1.2 uses the native compatibility input. |
 
 Every colour, type style, corner, duration and easing resolves to a `--m3e-*`
 token, so surfaces follow your theme in light and dark at any density.
@@ -288,6 +288,8 @@ token, so surfaces follow your theme in light and dark at any density.
 
 - **React / React DOM:** 18 or 19.
 - **Material 3 Expressive:** `^1.2.0`.
+  Picker-bearing releases use the public Material date/time components;
+  released 1.2 versions use the token-styled native compatibility path.
 - **A2UI:** protocol v0.9.1 through `@a2ui/web_core` `^0.10.7 || ^0.11.0`;
   tested with `0.11.0` and at the `0.10.7` floor. v0.9 is accepted with
   `useA2ui({ version: 'v0.9' })`. The v0.8 protocol and its catalog are not

@@ -44,19 +44,36 @@ each widens the untrusted-input surface. Tables and nested lists, excluded
 here at first, were added by
 [ADR 0006](0006-markdown-tables-and-nested-lists.md).
 
-## `DateTimeInput` renders a native input
+## `DateTimeInput` uses picker capabilities with a native compatibility path
 
-The design system has no date or time picker yet. Rather than hand-build one
-— which the design system rules forbid — `DateTimeInput` renders the
-platform's `<input type="date|time|datetime-local">`, dressed in the outlined
-text field's tokens, and is the single file the verifier allowlists for a raw
-`<input>`. When the design system ships a picker, this component moves to it
-and the allowlist entry goes.
+The renderer loads the design system through its public root namespace and
+checks for the `DatePicker`, `TimePicker`, and `DateTimePicker` exports. When
+present, date-only, time-only, and combined inputs render those respective
+components in their modal presentation. This avoids duplicating their
+calendar, clock, focus, validation, locale, and accessibility behavior.
+
+The declared `^1.2.0` peer range predates those exports. For those released
+versions, `DateTimeInput` retains the platform's
+`<input type="date|time|datetime-local">`, dressed in the outlined text
+field's tokens. It remains the single file the verifier allowlists for a raw
+`<input>`. Namespace capability detection is transitional: it keeps the
+published peer floor reproducible until a released picker version can become
+the declared floor, at which point the fallback and allowlist can be removed.
 
 Values stay ISO 8601 in both directions. A value with an explicit offset is an
 instant and is shown in the user's own time zone; a picked time is then sent
 back as a UTC instant, so the agent keeps the semantics it sent. A value
-without an offset is taken as written.
+without an offset is taken as written. Protocol checks appear through the
+picker's error and supporting-text API after touch, and accessibility
+descriptions reach the picker field through `aria-description`.
+
+The combined picker emits an empty value while either child has an incomplete
+or cleared draft, so the bound protocol value clears immediately and no
+date or time is fabricated. The adapter retains the last authoritative
+value's instant-versus-civil representation while that local draft continues;
+a later complete local value therefore returns to UTC when the agent supplied
+an instant. A distinct external data-model update, including an external
+clear, replaces that representation preference.
 
 ## `primaryColor` is exposed, not applied
 

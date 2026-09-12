@@ -57,9 +57,9 @@ for (const name of entry.external) {
 }
 assert.match(readFileSync(path.join(root, 'dist', 'index.js'), 'utf8'), /^['"]use client['"];?/, 'index.js')
 
-// DateTimeInput is the one place a native input is allowed: the base library
-// has no date or time picker yet (see ADR 0001), so the native picker is
-// styled with tokens instead.
+// DateTimeInput is the one place a native input is allowed. It is the
+// compatibility path for the declared Material 1.2 floor, which predates the
+// public picker exports (see ADR 0003).
 const nativeInputAllowed = new Set([path.join(root, 'src/components/DateTimeInput/DateTimeInput.tsx')])
 
 function checkSources(directory) {
