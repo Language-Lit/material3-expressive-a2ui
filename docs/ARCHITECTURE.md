@@ -52,6 +52,15 @@ surface's `onError` is forwarded to `onError`. On unmount the hook deletes
 every surface, which is what makes a `StrictMode` mount–unmount–mount
 sequence start clean instead of failing on a duplicate surface id.
 
+The hook forwards raw processor and surface reports without deciding whether an
+`EXPRESSION_ERROR` recovered. A host that streams messages owns that boundary:
+it can label a report as an initialization diagnostic until the surface has
+received its data model or the stream has finished, then keep later expression
+errors actionable. A data update is evidence that initialization progressed,
+not evidence that a malformed expression succeeded. The playground keeps the
+raw report visible and uses an explicit replay-finished marker for this
+classification.
+
 The functions the hook returns are referentially stable. The object is not —
 it carries the current surfaces — so an effect that replays messages should
 depend on `processMessages` and `clear`, not on the whole result. The

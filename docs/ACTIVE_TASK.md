@@ -521,6 +521,58 @@ registration, protocol and compatibility tests, package verifier,
 - The Material catalog ID is not hosted by this change. The README and ADR
   explain inline capability delivery and the separately owned hosting task.
 
+## T10 — Complete remaining compatibility and delivery work
+
+Status: active
+Approved: 2026-09-12 (owner: "Don't defer, let's tackle them ... Use cheaper
+models for the actual coding ... then you only double check.")
+
+### Scope and expected files
+
+Use supervised lower-cost coding workers, with coordinator architecture
+review and final verification. Address misleading streaming-error logs,
+implement applicable upstream conformance checks, generate a reproducible
+Material catalog schema and its hosting integration, and establish and
+implement the prerequisites for full v1.0 and Material date/time pickers
+within the repository ownership boundaries. Upstream-dependent features
+must not be falsely advertised or implemented as a duplicate protocol.
+Separate completed workstreams into commits without assistant co-authors.
+
+Expected files: playground logging and tests; conformance fixtures, tests
+and verification scripts; catalog schema generation and delivery scripts;
+README, SPEC, ARCHITECTURE and relevant ADRs. Protocol/date-picker work in
+other repositories requires separately scoped ownership under AGENTS.md;
+prepare exact implementation briefs and reproduction evidence before any
+cross-repository permission question. Do not edit installed peers.
+
+### Acceptance checks
+
+1. Streaming login errors remain inspectable as initialization diagnostics;
+   post-initialization expression errors remain visible and actionable.
+2. Pinned upstream conformance cases exercise the real web_core pipeline,
+   with a precise version/coverage report rather than a false v1.0 claim.
+3. The Material schema is generated from the actual catalog, reproducible,
+   validated, and available in the prepared hosting output.
+4. Complete implementable scope, identify exact upstream changes needed,
+   and verify claims against published entries and the owning repositories.
+5. `npm run verify`, playground build, appropriate browser checks and the
+   supported dependency-floor checks pass before completion.
+
+### Streaming diagnostics verification (2026-09-12)
+
+- The playground preserves raw reports, labels pre-data `EXPRESSION_ERROR`s as
+  unverified initialization diagnostics, and treats later reports as
+  actionable after an explicit replay-finished boundary.
+- `tests/runtime/playground-diagnostics.test.tsx` has two real
+  `useA2ui`/`MessageProcessor` pipeline tests: the streamed login fixture
+  remains inspectable without adding expression errors after valid and empty
+  input, and a malformed function becomes actionable after a no-data replay
+  finishes.
+- The focused diagnostics tests and `npm run playground:build` pass.
+- Browser review in light and dark modes found no page errors; Replay resets
+  the log and coalesces the three repeated initialization reports, while each
+  entry still exposes its raw details.
+
 ## Current task
 
-None.
+T10.

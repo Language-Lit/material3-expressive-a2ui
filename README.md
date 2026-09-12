@@ -137,14 +137,16 @@ returns the model to send back alongside actions.
 
 ### Errors you will see
 
-`onError` receives two kinds of report. A message that fails validation is a
-processor error and means the agent sent something the protocol does not
-allow. An `EXPRESSION_ERROR` from a surface means a catalog function
-(`formatCurrency`, `required`, …) was evaluated while a value it needs was
-still missing — routine while a surface is streaming in, or while a required
-field is still empty — and it resolves as soon as the data arrives. Treat the
-second kind as a diagnostic. Without an `onError`, processor errors are thrown
-from `processMessages`.
+`onError` receives raw reports from both the processor and each surface. A
+message that fails validation is a processor error and means the agent sent
+something the protocol does not allow. An `EXPRESSION_ERROR` can be an
+initialization diagnostic when a surface is still arriving and a bound value
+is not present yet, but it can also describe a malformed or otherwise
+actionable function after the stream has initialized. Keep the raw reports
+inspectable, mark the stream boundary in the host, and treat expression
+errors after that boundary as actionable. A data update does not by itself
+prove that an expression recovered. Without an `onError`, processor errors
+are thrown from `processMessages`.
 
 ### Extend the catalog
 

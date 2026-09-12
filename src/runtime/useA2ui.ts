@@ -29,11 +29,12 @@ export interface UseA2uiOptions {
    * Called when a message fails to process or a surface reports an error.
    * Without it, processing errors are thrown from `processMessages`.
    *
-   * Expect `EXPRESSION_ERROR` reports while a surface is still arriving or a
-   * field is still empty: the basic catalog's functions validate their
-   * arguments and report through this channel when a bound value is missing,
-   * then resolve as soon as the data does. Treat them as diagnostics, not
-   * failures.
+   * `EXPRESSION_ERROR` reports can be emitted while a surface is still
+   * arriving, when a bound value is missing, or when a function remains
+   * malformed. The hook forwards every raw report; the host should track its
+   * stream boundary and distinguish an initialization diagnostic from an
+   * expression error that remains actionable after data has arrived. A data
+   * update alone is not evidence that an expression recovered.
    */
   readonly onError?: (error: unknown, surfaceId?: string) => void
   /** Protocol version for capabilities and the client data model. Defaults to `v0.9.1`. */

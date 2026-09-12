@@ -86,3 +86,16 @@ body {
 .pg-log__error {
   color: var(--m3e-sys-color-error);
 }
+
+.pg-log__details {
+  margin-block-start: 4px;
+}
+
+.pg-log__details summary {
+  cursor: pointer;
+}
+
+.pg-log__raw {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

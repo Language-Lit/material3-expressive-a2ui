@@ -12,14 +12,17 @@ import {
 import { A2uiSurface } from '../src/runtime/A2uiSurface'
 import { useA2ui } from '../src/runtime/useA2ui'
 import { examples } from './examples'
+import { createStreamingDiagnosticTracker, type DiagnosticPhase } from './diagnostics'
 
 type ColorMode = 'light' | 'dark' | 'system'
 
 const STEP_MS = 350
 
 interface LogEntry {
-  readonly kind: 'action' | 'error'
+  readonly kind: 'action' | 'diagnostic'
+  readonly phase?: DiagnosticPhase
   readonly text: string
+  readonly raw?: string
   readonly count: number
 }
 
@@ -35,9 +38,60 @@ function describeError(error: unknown): string {
   return JSON.stringify(error)
 }
 
+function describeRawError(error: unknown): string {
+  if (error instanceof Error) {
+    const details = error as Error & {
+      code?: unknown
+      details?: unknown
+      expression?: unknown
+    }
+    try {
+      return JSON.stringify(
+        {
+          name: details.name,
+          code: details.code,
+          message: details.message,
+          expression: details.expression,
+          details: details.details,
+          stack: details.stack,
+        },
+        null,
+        2,
+      )
+    } catch {
+      return `${details.name}: ${details.message}`
+    }
+  }
+  try {
+    return JSON.stringify(error, null, 2)
+  } catch {
+    return String(error)
+  }
+}
+
 function append(entries: readonly LogEntry[], entry: Omit<LogEntry, 'count'>): LogEntry[] {
+  if (entry.kind === 'diagnostic') {
+    const existing = entries.findIndex(
+      (candidate) =>
+        candidate.kind === 'diagnostic' &&
+        candidate.phase === entry.phase &&
+        candidate.text === entry.text &&
+        candidate.raw === entry.raw,
+    )
+    if (existing >= 0) {
+      return entries.map((candidate, index) =>
+        index === existing ? { ...candidate, count: candidate.count + 1 } : candidate,
+      )
+    }
+  }
   const [latest, ...rest] = entries
-  if (latest && latest.kind === entry.kind && latest.text === entry.text) {
+  if (
+    latest &&
+    latest.kind === entry.kind &&
+    latest.phase === entry.phase &&
+    latest.text === entry.text &&
+    latest.raw === entry.raw
+  ) {
     return [{ ...latest, count: latest.count + 1 }, ...rest]
   }
   return [{ ...entry, count: 1 }, ...entries]
@@ -54,6 +108,18 @@ export function App() {
   const [selected, setSelected] = useState(initialExample)
   const [log, setLog] = useState<LogEntry[]>([])
   const timers = useRef<number[]>([])
+  const diagnostics = useRef(
+    createStreamingDiagnosticTracker(({ phase, error, surfaceId }) => {
+      setLog((entries) =>
+        append(entries, {
+          kind: 'diagnostic',
+          phase,
+          text: `${surfaceId ?? 'processor'}: ${describeError(error)}`,
+          raw: describeRawError(error),
+        }),
+      )
+    }),
+  )
 
   const a2ui = useA2ui({
     onAction: (action: A2uiClientAction) => {
@@ -65,9 +131,7 @@ export function App() {
       )
     },
     onError: (error, surfaceId) => {
-      setLog((entries) =>
-        append(entries, { kind: 'error', text: `${surfaceId ?? 'processor'}: ${describeError(error)}` }),
-      )
+      diagnostics.current.report(error, surfaceId)
     },
   })
 
@@ -88,12 +152,17 @@ export function App() {
     (file: string) => {
       stop()
       clear()
+      diagnostics.current.reset()
       setLog([])
       const example = examples.find((item) => item.file === file)
       if (!example) return
       example.messages.forEach((message, index) => {
         timers.current.push(
-          window.setTimeout(() => processMessages([message]), index * STEP_MS),
+          window.setTimeout(() => {
+            diagnostics.current.observe(message)
+            processMessages([message])
+            if (index === example.messages.length - 1) diagnostics.current.finish()
+          }, index * STEP_MS),
         )
       })
     },
@@ -159,16 +228,38 @@ export function App() {
             </Text>
             {log.length === 0 ? (
               <Text as="p" variant="bodySmall" style={{ margin: 0 }}>
-                Actions and errors the surface sends back appear here.
+                Actions and diagnostics the surface sends back appear here.
               </Text>
             ) : (
               <ul className="pg-log__list">
                 {log.map((entry, index) => (
-                  <li key={index} className={entry.kind === 'error' ? 'pg-log__error' : undefined}>
+                  <li
+                    key={index}
+                    className={
+                      entry.kind === 'diagnostic' && entry.phase === 'actionable'
+                        ? 'pg-log__error'
+                        : undefined
+                    }
+                  >
                     <Text as="span" variant="bodySmall">
+                      {entry.kind === 'diagnostic'
+                        ? `${entry.phase === 'initialization' ? 'Initialization diagnostic (unverified)' : 'Actionable error'} · `
+                        : ''}
                       {entry.text}
                       {entry.count > 1 ? ` ×${entry.count}` : ''}
                     </Text>
+                    {entry.kind === 'diagnostic' && entry.raw ? (
+                      <details className="pg-log__details">
+                        <summary>
+                          <Text as="span" variant="bodySmall">
+                            Raw report
+                          </Text>
+                        </summary>
+                        <Text as="div" variant="bodySmall" className="pg-log__raw">
+                          {entry.raw}
+                        </Text>
+                      </details>
+                    ) : null}
                   </li>
                 ))}
               </ul>
