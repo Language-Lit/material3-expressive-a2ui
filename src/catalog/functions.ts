@@ -1,5 +1,11 @@
-import { createFunctionImplementation, type FunctionImplementation } from '@a2ui/web_core/v0_9'
-import { EmailApi } from '@a2ui/web_core/v0_9/basic_catalog'
+import { A2uiExpressionError, createFunctionImplementation, type FunctionImplementation } from '@a2ui/web_core/v0_9'
+import {
+  EmailApi,
+  OpenUrlApi,
+  OpenUrlImplementation as BaseOpenUrlImplementation,
+} from '@a2ui/web_core/v0_9/basic_catalog'
+
+import { hasUserActivation } from '../internal/activation'
 
 /**
  * The minimal catalog's one function. The specification describes it as
@@ -30,3 +36,30 @@ export const CapitalizeImplementation: FunctionImplementation = createFunctionIm
     return first.toUpperCase() + rest.join('').toLowerCase()
   },
 )
+
+/**
+ * The basic catalog's `openUrl`, restricted to user-initiated actions
+ * (ADR 0005). web_core's implementation already allows only `http` and
+ * `https` and opens with `noopener,noreferrer`; this one refuses to run
+ * outside the scope of an action a component dispatched from a user
+ * gesture, so a call placed in a `Text` expression or re-evaluated by a
+ * data-model update reports an expression error instead of opening a tab.
+ *
+ * `requiresUserActivation` is the marker the specification's proposal gives
+ * such functions; web_core does not read it yet, but a host inspecting the
+ * function list can.
+ */
+export const OpenUrlImplementation: FunctionImplementation & { readonly requiresUserActivation: true } =
+  Object.assign(
+    createFunctionImplementation(OpenUrlApi, (args, context, abortSignal) => {
+      if (!hasUserActivation()) {
+        throw new A2uiExpressionError(
+          'openUrl runs only from a user-initiated action, such as a Button click. ' +
+            'It was evaluated while rendering, in an expression, or outside a user gesture.',
+          'openUrl',
+        )
+      }
+      BaseOpenUrlImplementation.execute(args, context, abortSignal)
+    }),
+    { requiresUserActivation: true as const },
+  )

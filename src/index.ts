@@ -9,7 +9,7 @@ export {
   material3MinimalComponents,
   type CreateMaterial3CatalogOptions,
 } from './catalog'
-export { CapitalizeImplementation } from './catalog/functions'
+export { CapitalizeImplementation, OpenUrlImplementation } from './catalog/functions'
 export {
   AudioPlayerImplementation,
   ButtonImplementation,

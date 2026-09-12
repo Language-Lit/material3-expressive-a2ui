@@ -1,11 +1,14 @@
-import { memo, useCallback, useRef, useSyncExternalStore, type FC, type ReactNode } from 'react'
+import { memo, useCallback, useMemo, useRef, useSyncExternalStore, type FC, type ReactNode } from 'react'
 import {
+  ActionSchema,
   GenericBinder,
   type ComponentApi,
   type ComponentContext,
   type InferredComponentApiSchemaType,
   type ResolveA2uiProps,
 } from '@a2ui/web_core/v0_9'
+
+import { runUserActivation } from '../internal/activation'
 
 /** Builds a child component by id, optionally in a different data scope. */
 export type BuildChild = (componentId: string, basePath?: string) => ReactNode
@@ -42,6 +45,25 @@ export interface Material3ComponentImplementation<Api extends ComponentApi = Com
   readonly render: FC<A2uiHostProps>
 }
 
+/**
+ * Returns the snapshot with each action closure entered through the
+ * user-activation scope (ADR 0005), or the snapshot itself when it has none.
+ * An entry is an action when it is a function and the component's raw
+ * property of the same name is an A2UI `Action`; generated setters such as
+ * `setValue` have no raw counterpart and stay as they are, so a data write
+ * never counts as a user gesture.
+ */
+function withUserActivation<Props extends object>(props: Props, raw: Record<string, unknown>): Props {
+  let wrapped: Record<string, unknown> | undefined
+  for (const [key, value] of Object.entries(props)) {
+    if (typeof value !== 'function' || !ActionSchema.safeParse(raw[key]).success) continue
+    const copy: Record<string, unknown> = wrapped ?? { ...(props as Record<string, unknown>) }
+    copy[key] = () => runUserActivation(value as () => unknown)
+    wrapped = copy
+  }
+  return (wrapped ?? props) as Props
+}
+
 interface BinderSlot<Props> {
   readonly context: ComponentContext
   readonly binder: GenericBinder<Props>
@@ -55,7 +77,8 @@ interface BinderSlot<Props> {
  * subscriber and tears everything down on the last, so mounting and
  * unmounting — including StrictMode's simulated remount — leaves no listeners
  * behind. Props reach the render function through `useSyncExternalStore`, so
- * a data-model change re-renders exactly the components bound to it.
+ * a data-model change re-renders exactly the components bound to it. Action
+ * closures are wrapped in the user-activation scope on the way through.
  */
 export function createMaterial3Component<Api extends ComponentApi>(
   api: Api,
@@ -87,9 +110,13 @@ export function createMaterial3Component<Api extends ComponentApi>(
       [binder],
     )
     const getSnapshot = useCallback(() => binder.snapshot, [binder])
-    const props = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
+    const snapshot = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
+    const props = useMemo(
+      () => withUserActivation(snapshot ?? ({} as Props), context.componentModel.properties),
+      [snapshot, context],
+    )
 
-    return <MemoizedRender props={props ?? ({} as Props)} context={context} buildChild={buildChild} />
+    return <MemoizedRender props={props} context={context} buildChild={buildChild} />
   }
   Host.displayName = `A2ui(${api.name})`
 

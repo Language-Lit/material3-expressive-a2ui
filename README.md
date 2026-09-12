@@ -168,7 +168,11 @@ const a2ui = useA2ui({ catalogs: [catalog] })
 ```
 
 Pass `id` to publish the catalog under your own id, or `functions` to replace
-the specification's function set.
+the specification's function set. A replaced set is used as given, so include
+this package's `OpenUrlImplementation` in it to keep `openUrl` restricted to
+user-initiated actions. A component of your own that calls `props.action()`
+from a click gets that restriction for free: the adapter wraps action
+closures before they reach `render`.
 
 ### Use the catalog under another surface
 
@@ -241,6 +245,10 @@ token, so surfaces follow your theme in light and dark at any density.
 - **Markdown:** a safe subset rendered to React nodes. No tables, images,
   raw HTML or nested lists. Links open for `http`, `https`, `mailto` and
   `tel` only.
+- **`openUrl`:** runs only from a user-initiated action, such as a `Button`
+  click. A call an agent puts in a `Text` expression, a bound property or a
+  value a data update re-evaluates is refused and reported through
+  `onError`; no tab opens.
 - **`primaryColor`:** exposed as the `--m3e-a2ui-agent-color` custom property
   on the surface and used for attribution; it does not re-theme the surface.
 - **Application responsibilities:** transport, authentication, persistence,
@@ -292,6 +300,7 @@ so what you see is the source.
 - [ADR 0002](docs/adr/0002-render-only-implementations-and-own-surface.md) — render-only implementations and the surface
 - [ADR 0003](docs/adr/0003-rendering-decisions.md) — icons, Markdown, the date input, `primaryColor`
 - [ADR 0004](docs/adr/0004-forward-compatible-properties.md) — the three v1.0 properties accepted ahead of a v1.0 runtime
+- [ADR 0005](docs/adr/0005-user-initiated-open-url.md) — `openUrl` runs only from a user-initiated action
 
 ## License
 

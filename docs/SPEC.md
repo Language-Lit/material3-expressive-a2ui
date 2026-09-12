@@ -91,8 +91,10 @@ ADR.
   - `material3Catalog`, `createMaterial3Catalog`, `material3Components`,
     `BASIC_CATALOG_ID`;
   - `material3MinimalCatalog`, `material3MinimalComponents`,
-    `MINIMAL_CATALOG_ID`, `CapitalizeImplementation`, and
-    `material3Catalogs`, the default registration order;
+    `MINIMAL_CATALOG_ID`, and `material3Catalogs`, the default
+    registration order;
+  - `CapitalizeImplementation` and `OpenUrlImplementation`, the package's
+    own function implementations;
   - the eighteen `<Name>Implementation` objects;
   - `createMaterial3Component` and the `Material3ComponentImplementation`,
     `A2uiHostProps`, `A2uiRenderProps`, `BuildChild`, `ResolvedProps` types;
@@ -252,6 +254,19 @@ spans the container.
 A component whose `checks` fail exposes `isValid` and `validationErrors`
 through the binder. Inputs show the messages after the user has touched them;
 a `Button` with failing checks is disabled.
+
+### 4.6 User-initiated functions
+
+`openUrl` MUST run only inside the execution scope of an action a component
+dispatched, and, where the browser exposes `navigator.userActivation`, only
+while that activation is live. A call evaluated anywhere else — while
+rendering, inside an expression, on a data-model update, or from a value
+setter — MUST NOT open anything and MUST be reported on the surface as an
+`EXPRESSION_ERROR` naming `openUrl`. The adapter MUST enter the scope for
+every action closure it hands to a render function and MUST NOT enter it
+for generated setters. Every catalog `createMaterial3Catalog` builds
+without a caller-supplied `functions` list MUST carry this implementation
+([ADR 0005](adr/0005-user-initiated-open-url.md)).
 
 ## 5. Accessibility
 

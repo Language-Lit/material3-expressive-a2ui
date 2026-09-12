@@ -22,7 +22,7 @@ import {
   VideoImplementation,
 } from '../components'
 import type { Material3ComponentImplementation } from '../runtime/adapter'
-import { CapitalizeImplementation } from './functions'
+import { CapitalizeImplementation, OpenUrlImplementation } from './functions'
 
 /** The id of the A2UI basic catalog, as agents name it in `createSurface`. */
 export const BASIC_CATALOG_ID = 'https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json'
@@ -68,6 +68,16 @@ export interface CreateMaterial3CatalogOptions {
 }
 
 /**
+ * The specification's functions, with `openUrl` replaced by the package's
+ * user-activation-guarded implementation (ADR 0005). A caller-supplied
+ * `functions` list is used as given.
+ */
+function basicFunctions(locale?: string): FunctionImplementation[] {
+  const functions = locale ? createBasicCatalogFunctions({ locale }) : BASIC_FUNCTIONS
+  return functions.map((fn) => (fn.name === OpenUrlImplementation.name ? OpenUrlImplementation : fn))
+}
+
+/**
  * Builds a catalog of the Material 3 implementations plus the basic functions.
  * Use it to extend the basic catalog under another id, to swap one component
  * for a host-specific one, or to localise the formatting functions.
@@ -75,9 +85,7 @@ export interface CreateMaterial3CatalogOptions {
 export function createMaterial3Catalog(
   options: CreateMaterial3CatalogOptions = {},
 ): Catalog<Material3ComponentImplementation> {
-  const functions =
-    options.functions ??
-    (options.locale ? createBasicCatalogFunctions({ locale: options.locale }) : BASIC_FUNCTIONS)
+  const functions = options.functions ?? basicFunctions(options.locale)
   return new Catalog<Material3ComponentImplementation>(
     options.id ?? BASIC_CATALOG_ID,
     [...material3Components, ...(options.components ?? [])],

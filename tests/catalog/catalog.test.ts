@@ -1,5 +1,5 @@
 import { Catalog, type ComponentApi, MessageProcessor } from '@a2ui/web_core/v0_9'
-import { BASIC_COMPONENTS } from '@a2ui/web_core/v0_9/basic_catalog'
+import { BASIC_COMPONENTS, OpenUrlImplementation as BaseOpenUrlImplementation } from '@a2ui/web_core/v0_9/basic_catalog'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -14,7 +14,7 @@ import {
   material3MinimalCatalog,
   material3MinimalComponents,
 } from '../../src/catalog'
-import { CapitalizeImplementation } from '../../src/catalog/functions'
+import { CapitalizeImplementation, OpenUrlImplementation } from '../../src/catalog/functions'
 import { A2UI_ICON_NAMES } from '../../src/internal/icons'
 
 interface SpecCatalog {
@@ -177,5 +177,19 @@ describe('forward-compatible v1.0 properties', () => {
       const extra = [...propertyNames(implemented?.[name])].filter((key) => !stockKeys.has(key))
       expect(extra.sort(), name).toEqual((additions[name] ?? []).sort())
     }
+  })
+})
+
+describe('openUrl', () => {
+  it('is the user-activation-guarded implementation in the default and localised catalogs', () => {
+    expect(material3Catalog.functions.get('openUrl')).toBe(OpenUrlImplementation)
+    expect(createMaterial3Catalog({ locale: 'pt-BR' }).functions.get('openUrl')).toBe(OpenUrlImplementation)
+    expect(OpenUrlImplementation.requiresUserActivation).toBe(true)
+    expect(OpenUrlImplementation.name).toBe(BaseOpenUrlImplementation.name)
+  })
+
+  it('is not substituted into a caller-supplied function list', () => {
+    const custom = createMaterial3Catalog({ functions: [BaseOpenUrlImplementation] })
+    expect(custom.functions.get('openUrl')).toBe(BaseOpenUrlImplementation)
   })
 })

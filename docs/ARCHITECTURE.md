@@ -106,7 +106,11 @@ relative `{ path }` under that base. The surface keys template children by
    resolved props. The binder connects on the first subscriber and disposes
    on the last, and its snapshot is a stable reference until something it
    depends on changes, so React re-renders exactly when a bound value does.
-4. `Render` is wrapped in `memo` comparing the props snapshot, `buildChild`,
+4. Each action closure in the snapshot is wrapped so that calling it enters
+   the user-activation scope (`src/internal/activation.ts`); generated
+   setters are not. The guarded `openUrl` checks that scope
+   ([ADR 0005](adr/0005-user-initiated-open-url.md)).
+5. `Render` is wrapped in `memo` comparing the props snapshot, `buildChild`,
    the component model and the context's path.
 
 `Render` therefore looks like an ordinary presentational component:
@@ -120,11 +124,14 @@ model. That is the contract `@a2ui/react` and CopilotKit consume, which is why
 ## The catalog
 
 `src/catalog/index.ts` lists the eighteen implementations and builds
-`material3Catalog = new Catalog(BASIC_CATALOG_ID, components, BASIC_FUNCTIONS)`.
+`material3Catalog = new Catalog(BASIC_CATALOG_ID, components, functions)`,
+where `functions` is web_core's `BASIC_FUNCTIONS` with `openUrl` swapped for
+the package's own `OpenUrlImplementation` (`src/catalog/functions.ts`), which
+runs only inside a user-initiated action.
 `createMaterial3Catalog({ id, components, functions, locale })` builds a
 variant: a different id for a host that publishes its own catalog, extra
-components, replaced functions, or the specification's functions bound to a
-locale for `formatCurrency`, `formatDate` and friends.
+components, replaced functions (used as given), or the specification's
+functions bound to a locale for `formatCurrency`, `formatDate` and friends.
 
 `material3MinimalCatalog` is the specification's minimal catalog — `Text`,
 `Row`, `Column`, `Button`, `TextField` and the function `capitalize` — built

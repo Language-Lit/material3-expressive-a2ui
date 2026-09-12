@@ -367,6 +367,57 @@ is not silently stripped; take nothing else from v1.0. Expected files:
 - This commit also carries the corrected §2.2 sentence in `docs/SPEC.md`
   that T05's commit missed.
 
+## T07 — `openUrl` runs only from a user-initiated action
+
+Status: complete
+Approved: 2026-09-12 (owner: "Ok, let's do them all")
+Completed: 2026-09-12
+
+### Scope and expected files
+
+web_core evaluates `openUrl` wherever an expression is evaluated, so an
+agent can open a tab from a `Text` property or a data-model update. The
+specification's draft proposal on user-gesture-restricted functions asks
+renderers to run such functions only inside a component action dispatched
+from a user gesture. Adopt it: a user-activation scope the adapter enters
+around action closures, a guarded `openUrl` that refuses to run outside
+it, and the swap into every catalog the package builds. Expected files:
+`src/internal/activation.ts` (new), `src/catalog/functions.ts`,
+`src/catalog/index.ts`, `src/index.ts`, `src/runtime/adapter.tsx`,
+`fixtures/render.tsx`, `tests/runtime/user-activation.test.tsx` (new),
+`tests/catalog/catalog.test.ts`, `docs/adr/0005-user-initiated-open-url.md`
+(new), `README.md`, `docs/SPEC.md`, `docs/ARCHITECTURE.md`,
+`docs/ACTIVE_TASK.md`.
+
+### Acceptance checks
+
+1. `npm run verify` passes.
+2. A `Button` whose action calls `openUrl` opens the URL once with
+   `noopener,noreferrer`; the same call in a `Text`, re-evaluated by a
+   data-model update, or triggered through a value setter opens nothing and
+   reports an `EXPRESSION_ERROR` naming `openUrl`.
+3. A click the browser reports as outside a user gesture
+   (`navigator.userActivation.isActive === false`) is refused.
+4. A host component built with `createMaterial3Component` that calls
+   `props.action()` from a click is inside the scope without extra work.
+5. The default, locale-bound and extended catalogs carry the guarded
+   implementation; a caller-supplied `functions` list is used as given.
+
+### Verification record
+
+- `npm run verify` green: typecheck, 107 tests in 7 files, build,
+  namespace guard and package inspection.
+- The scope is entered in the adapter, not in `Button`, so it follows the
+  proposal's "binders wrap action callbacks automatically" and covers host
+  components. An entry is an action when the raw property of the same name
+  parses with web_core's `ActionSchema`; setters have no raw counterpart
+  and stay unwrapped, which the setter test pins.
+- web_core catches the thrown `A2uiExpressionError` in
+  `evaluateFunctionReactive` and dispatches it on the surface, so a refused
+  click surfaces through `onError` rather than as an uncaught exception.
+- jsdom has no `navigator.userActivation`; the browser check is exercised
+  by defining one on `navigator` for a single test.
+
 ## Current task
 
 None.
