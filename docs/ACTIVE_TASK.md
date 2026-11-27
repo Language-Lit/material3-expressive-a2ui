@@ -660,7 +660,7 @@ picker exports. The pushed `v0.2.1` tag points at that published commit.
 
 ## T11 — A2UI v1.0 migration (`0.3.0`)
 
-Status: complete (awaiting owner npm publish & tag)
+Status: complete
 Approved: 2026-11-27 (owner: "Yes, let's update it then. If necessary change the material3-expressive repo and the landing as well, go ahead.")
 Completed: 2026-11-27
 
@@ -708,10 +708,12 @@ Adopt A2UI v1.0 on `@a2ui/web_core@^0.16.1` (and test compatibility against
 - Export map remains strictly `.` and `./styles.css`, runtime dependencies
   remain zero, and `src/` imports only `@a2ui/web_core`, `@a2ui/web_core/v1_0`,
   and `@a2ui/web_core/catalogs/basic/v1` (no direct `zod` or `@a2ui/react`).
-- Owner actions remaining after this task: `npm publish` `0.3.0`, tag `v0.3.0`,
-  switch the design system site from the vendored tarball to `"0.3.0"`, deploy
-  the site, and open the PR on `a2ui-project/a2ui` updating the ecosystem
-  renderer listing to `v1.0`.
+- Published by the owner on 2026-11-27 as `@language-lit/material3-expressive-a2ui@0.3.0`
+  (`dist-tags.latest: 0.3.0`) from commit `fc55235`, with registry shasum
+  `1d19108ae127b751152217b3040c4b6f2447d139` (matching the local dry run).
+- Annotated tag `v0.3.0` points at `fc55235` with GitHub Release `v0.3.0`.
+- The documentation site switched from the vendored tarball to registry
+  `"0.3.0"` and verified cleanly against the published package.
 
 ## Current task
 
