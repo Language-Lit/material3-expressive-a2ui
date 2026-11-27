@@ -1,5 +1,5 @@
 import { Card as MaterialCard } from '@language-lit/material3-expressive'
-import { CardApi } from '@a2ui/web_core/v0_9/basic_catalog'
+import { CardApi } from '@a2ui/web_core/catalogs/basic/v1'
 
 import { asText, weightStyle } from '../../internal/layout'
 import { createMaterial3Component } from '../../runtime/adapter'

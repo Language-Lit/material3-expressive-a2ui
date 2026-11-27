@@ -1,6 +1,6 @@
 # ADR 0008: Preserve canonical schema reference metadata
 
-Status: accepted
+Status: accepted (basic-component workaround retired in [ADR 0009](0009-adopt-a2ui-v1.md); Material extension schemas and hosted pointer verification retained)
 Date: 2026-09-12
 
 ## Context

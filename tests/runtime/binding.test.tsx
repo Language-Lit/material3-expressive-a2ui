@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 
 import { message } from '../../fixtures/messages'
 import { renderSurface } from '../../fixtures/render'
+import { BASIC_CATALOG_ID, MATERIAL_CATALOG_ID } from '../../src/catalog'
 
 const SURFACE = 's1'
 
@@ -14,8 +15,8 @@ describe('data binding', () => {
       message.createSurface(SURFACE, { sendDataModel: true }),
       message.updateComponents(SURFACE, [
         { id: 'root', component: 'Column', children: ['name', 'greeting'] },
-        { id: 'name', component: 'TextField', label: 'Name', value: { path: '/name' } },
-        { id: 'greeting', component: 'Text', text: { path: '/name' } },
+        { id: 'name', component: 'TextField', label: 'Name', value: { '@path': '/name' } },
+        { id: 'greeting', component: 'Text', text: { '@path': '/name' } },
       ]),
       message.updateDataModel(SURFACE, { name: 'Ada' }),
     ])
@@ -28,7 +29,7 @@ describe('data binding', () => {
     await user.type(field, 'Grace')
     expect(surface.dataModel.get('/name')).toBe('Grace')
     await waitFor(() => expect(screen.getByText('Grace')).toBeDefined())
-    expect(processor.getClientDataModel()?.surfaces?.[SURFACE]).toEqual({ name: 'Grace' })
+    expect((processor.getRendererDataModel()?.surfaces as Record<string, unknown> | undefined)?.[SURFACE]).toEqual({ name: 'Grace' })
 
     act(() => {
       processor.processMessages([message.updateDataModel(SURFACE, 'Linus', '/name')])
@@ -42,13 +43,19 @@ describe('data binding', () => {
       message.createSurface(SURFACE),
       message.updateComponents(SURFACE, [
         { id: 'root', component: 'Column', children: ['email', 'submit'] },
-        { id: 'email', component: 'TextField', label: 'Email', value: { path: '/email' } },
+        { id: 'email', component: 'TextField', label: 'Email', value: { '@path': '/email' } },
         {
           id: 'submit',
           component: 'Button',
           child: 'submit_label',
           variant: 'primary',
-          action: { event: { name: 'subscribe', context: { email: { path: '/email' }, plan: 'pro' } } },
+          action: {
+            event: {
+              name: 'subscribe',
+              context: { email: { '@path': '/email' }, plan: 'pro' },
+              userMessage: 'Subscribe me to Pro',
+            },
+          },
         },
         { id: 'submit_label', component: 'Text', text: 'Subscribe' },
       ]),
@@ -66,7 +73,7 @@ describe('data binding', () => {
     expect(typeof actions[0]?.timestamp).toBe('string')
   })
 
-  it('disables a checked button until its checks pass and shows the message after input', async () => {
+  it('disables a checked button until its @checks pass and shows the message after input', async () => {
     const user = userEvent.setup()
     renderSurface([
       message.createSurface(SURFACE),
@@ -76,10 +83,10 @@ describe('data binding', () => {
           id: 'email',
           component: 'TextField',
           label: 'Email',
-          value: { path: '/email' },
-          checks: [
+          value: { '@path': '/email' },
+          '@checks': [
             {
-              condition: { call: 'email', args: { value: { path: '/email' } }, returnType: 'boolean' },
+              condition: { '@call': 'email', args: { value: { '@path': '/email' } } },
               message: 'Enter a valid email address.',
             },
           ],
@@ -89,9 +96,9 @@ describe('data binding', () => {
           component: 'Button',
           child: 'label',
           action: { event: { name: 'go' } },
-          checks: [
+          '@checks': [
             {
-              condition: { call: 'email', args: { value: { path: '/email' } }, returnType: 'boolean' },
+              condition: { '@call': 'email', args: { value: { '@path': '/email' } } },
               message: 'Fix the email first.',
             },
           ],
@@ -122,21 +129,115 @@ describe('data binding', () => {
           id: 'price',
           component: 'Text',
           text: {
-            call: 'formatCurrency',
-            args: { value: { path: '/price' }, currency: 'USD' },
-            returnType: 'string',
+            '@call': 'formatCurrency',
+            args: { value: { '@path': '/price' }, currency: 'USD' },
           },
         },
         {
           id: 'count',
           component: 'Text',
-          text: { call: 'formatString', args: { value: '${/n} items' }, returnType: 'string' },
+          text: { '@call': 'formatString', args: { value: '${/n} items' } },
         },
       ]),
       message.updateDataModel(SURFACE, { price: 1234.5, n: 3 }),
     ])
     expect(screen.getByText('$1,234.50')).toBeDefined()
     expect(screen.getByText('3 items')).toBeDefined()
+  })
+
+  it('supports single-message createSurface with inline components and dataModel', () => {
+    const { errors } = renderSurface([
+      message.createSurface(SURFACE, {
+        components: [
+          { id: 'root', component: 'Column', children: ['title', 'body'] },
+          { id: 'title', component: 'Text', text: '## Instant surface' },
+          { id: 'body', component: 'Text', text: { '@path': '/greeting' } },
+        ],
+        dataModel: { greeting: 'Initialized in one message' },
+      }),
+    ])
+    expect(screen.getByRole('heading', { level: 2, name: 'Instant surface' })).toBeDefined()
+    expect(screen.getByText('Initialized in one message')).toBeDefined()
+    expect(errors).toEqual([])
+  })
+
+  it('resolves mixed catalogs on a surface without a default catalogId', async () => {
+    const user = userEvent.setup()
+    const { surface, errors } = renderSurface([
+      message.createSurface(SURFACE, {
+        catalogId: undefined,
+        components: [
+          { id: 'root', component: 'Column', '@catalogId': BASIC_CATALOG_ID, children: ['title', 'toggle'] },
+          { id: 'title', component: 'Text', '@catalogId': BASIC_CATALOG_ID, text: 'Mixed catalogs' },
+          {
+            id: 'toggle',
+            component: 'Switch',
+            '@catalogId': MATERIAL_CATALOG_ID,
+            label: 'Alerts',
+            value: { '@path': '/alerts' },
+          },
+        ],
+        dataModel: { alerts: false },
+      }),
+    ])
+    expect(screen.getByText('Mixed catalogs')).toBeDefined()
+    await user.click(screen.getByRole('switch', { name: 'Alerts' }))
+    expect(surface.dataModel.get('/alerts')).toBe(true)
+    expect(errors).toEqual([])
+  })
+
+  it('applies v1.0 @accessibility live and hidden regions', () => {
+    const { container, processor, errors } = renderSurface([
+      message.createSurface(SURFACE, {
+        components: [
+          { id: 'root', component: 'Column', children: ['status', 'secret'] },
+          {
+            id: 'status',
+            component: 'Text',
+            text: { '@path': '/status' },
+            '@accessibility': { live: 'polite' },
+          },
+          {
+            id: 'secret',
+            component: 'Text',
+            text: 'Decorative note',
+            '@accessibility': { hidden: { '@path': '/hideSecret' } },
+          },
+        ],
+        dataModel: { status: 'Saved', hideSecret: true },
+      }),
+    ])
+    const regions = container.querySelectorAll('.m3e-a2ui-a11y')
+    expect(regions).toHaveLength(2)
+    expect(regions[0]?.getAttribute('aria-live')).toBe('polite')
+    expect(regions[1]?.getAttribute('aria-hidden')).toBe('true')
+    expect(regions[1]?.hasAttribute('inert')).toBe(true)
+
+    act(() => {
+      processor.processMessages([message.updateDataModel(SURFACE, false, '/hideSecret')])
+    })
+    expect(regions[1]?.getAttribute('aria-hidden')).toBe('false')
+    expect(regions[1]?.hasAttribute('inert')).toBe(false)
+    expect(errors).toEqual([])
+  })
+
+  it('evaluates the v1.0 @index system function inside a ChildList template', () => {
+    const { errors } = renderSurface([
+      message.createSurface(SURFACE, {
+        components: [
+          { id: 'root', component: 'List', children: { componentId: 'item', path: '/fruits' } },
+          {
+            id: 'item',
+            component: 'Text',
+            text: { '@call': 'formatString', args: { value: '${@index()}: ${name}' } },
+          },
+        ],
+        dataModel: { fruits: [{ name: 'Apple' }, { name: 'Pear' }] },
+      }),
+    ])
+    expect(screen.getByText('0: Apple')).toBeDefined()
+    expect(screen.getByText('1: Pear')).toBeDefined()
+    expect(errors).toEqual([])
   })
 
   it('renders a component that arrives after the parent that references it', async () => {
@@ -172,8 +273,8 @@ describe('data binding', () => {
         message.createSurface(SURFACE),
         message.updateComponents(SURFACE, [
           { id: 'root', component: 'Column', children: ['agree', 'echo'] },
-          { id: 'agree', component: 'CheckBox', label: 'I agree', value: { path: '/agree' } },
-          { id: 'echo', component: 'Text', text: { path: '/agree' } },
+          { id: 'agree', component: 'CheckBox', label: 'I agree', value: { '@path': '/agree' } },
+          { id: 'echo', component: 'Text', text: { '@path': '/agree' } },
         ]),
         message.updateDataModel(SURFACE, { agree: false }),
       ],

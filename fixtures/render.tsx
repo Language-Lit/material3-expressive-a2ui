@@ -1,4 +1,5 @@
-import { MessageProcessor, type A2uiClientAction, type A2uiMessage, type Catalog } from '@a2ui/web_core/v0_9'
+import { MessageProcessor, type ActionPayload, type Catalog } from '@a2ui/web_core'
+import type { AgentToRendererMessage } from '@a2ui/web_core/v1_0'
 import { Material3Provider } from '@language-lit/material3-expressive'
 import { render } from '@testing-library/react'
 import { StrictMode, type ReactNode } from 'react'
@@ -19,15 +20,19 @@ export function wrap(children: ReactNode, strict = false) {
  * says otherwise.
  */
 export function renderSurface(
-  messages: readonly A2uiMessage[],
+  messages: readonly AgentToRendererMessage[],
   options: { strict?: boolean; catalogs?: readonly Catalog<Material3ComponentImplementation>[] } = {},
 ) {
-  const actions: A2uiClientAction[] = []
+  const actions: ActionPayload[] = []
   const errors: unknown[] = []
   const catalogs = options.catalogs ?? material3Catalogs
-  const processor = new MessageProcessor<Material3ComponentImplementation>([...catalogs], (action) => {
-    actions.push(action)
-  })
+  const processor = new MessageProcessor<Material3ComponentImplementation>(
+    [...catalogs],
+    (action) => {
+      actions.push(action)
+    },
+    { version: '1.0' },
+  )
   processor.onSurfaceCreated((surface) => {
     surface.onError.subscribe((error) => {
       errors.push(error)

@@ -34,7 +34,7 @@ describe('ChoicePicker', () => {
             { label: 'Small', value: 's' },
             { label: 'Large', value: 'l' },
           ],
-          value: { path: '/size' },
+          value: { '@path': '/size' },
         },
       ]),
       message.updateDataModel(SURFACE, { size: ['s'] }),
@@ -61,7 +61,7 @@ describe('ChoicePicker', () => {
             { label: 'Olives', value: 'olives' },
             { label: 'Basil', value: 'basil' },
           ],
-          value: { path: '/toppings' },
+          value: { '@path': '/toppings' },
         },
       ]),
       message.updateDataModel(SURFACE, { toppings: ['cheese'] }),
@@ -82,7 +82,7 @@ describe('Slider', () => {
     renderSurface([
       message.createSurface(SURFACE),
       message.updateComponents(SURFACE, [
-        { id: 'root', component: 'Slider', label: 'Volume', min: 0, max: 10, value: { path: '/volume' } },
+        { id: 'root', component: 'Slider', label: 'Volume', min: 0, max: 10, value: { '@path': '/volume' } },
       ]),
       message.updateDataModel(SURFACE, { volume: 7 }),
     ])
@@ -96,7 +96,7 @@ describe('Slider', () => {
     renderSurface([
       message.createSurface(SURFACE),
       message.updateComponents(SURFACE, [
-        { id: 'root', component: 'Slider', label: 'Progress', min: 0, max: 1, value: { path: '/progress' } },
+        { id: 'root', component: 'Slider', label: 'Progress', min: 0, max: 1, value: { '@path': '/progress' } },
       ]),
       message.updateDataModel(SURFACE, { progress: 0.45 }),
     ])
@@ -156,7 +156,7 @@ describe('DateTimeInput', () => {
           enableDate: true,
           min: '2026-09-10',
           max: '2026-09-15',
-          value: { path: '/day' },
+          value: { '@path': '/day' },
         },
       ]),
       message.updateDataModel(SURFACE, { day: '2026-09-11' }),
@@ -184,7 +184,7 @@ describe('DateTimeInput', () => {
           component: 'DateTimeInput',
           label: 'Start time',
           enableTime: true,
-          value: { path: '/start' },
+          value: { '@path': '/start' },
         },
       ]),
       message.updateDataModel(SURFACE, { start: '09:15' }),
@@ -203,7 +203,7 @@ describe('DateTimeInput', () => {
           component: 'DateTimeInput',
           label: 'Review day',
           enableDate: true,
-          value: { path: '/day' },
+          value: { '@path': '/day' },
         },
       ]),
       message.updateDataModel(SURFACE, { day: '2026-09-11' }),
@@ -236,15 +236,15 @@ describe('DateTimeInput', () => {
           component: 'DateTimeInput',
           label: 'Meeting time',
           enableTime: true,
-          value: { path: '/meeting' },
+          value: { '@path': '/meeting' },
         },
         {
           id: 'save',
           component: 'Button',
-          child: 'save-label',
-          action: { event: { name: 'save', context: { meeting: { path: '/meeting' } } } },
+          child: 'save_label',
+          action: { event: { name: 'save', context: { meeting: { '@path': '/meeting' } } } },
         },
-        { id: 'save-label', component: 'Text', text: 'Save' },
+        { id: 'save_label', component: 'Text', text: 'Save' },
       ]),
       message.updateDataModel(SURFACE, { meeting: '09:15' }),
     ])
@@ -265,8 +265,8 @@ describe('DateTimeInput', () => {
           label: 'Deadline',
           enableDate: true,
           value: '2026-09-11',
-          accessibility: { description: 'Use the project time zone.' },
-          checks: [{ condition: { path: '/valid' }, message: 'Choose a later date.' }],
+          '@accessibility': { description: 'Use the project time zone.' },
+          '@checks': [{ condition: { '@path': '/valid' }, message: 'Choose a later date.' }],
         },
       ]),
       message.updateDataModel(SURFACE, { valid: false }),
@@ -325,7 +325,7 @@ describe('DateTimeInput', () => {
           label: 'Departure',
           enableDate: true,
           enableTime: true,
-          value: { path: '/departure' },
+          value: { '@path': '/departure' },
         },
       ]),
       message.updateDataModel(SURFACE, { departure: instant.toISOString() }),
@@ -361,7 +361,7 @@ describe('Icon', () => {
       message.createSurface(SURFACE),
       message.updateComponents(SURFACE, [
         { id: 'root', component: 'Row', children: ['named', 'custom'] },
-        { id: 'named', component: 'Icon', name: 'favorite', accessibility: { label: 'Favourite' } },
+        { id: 'named', component: 'Icon', name: 'favorite', '@accessibility': { label: 'Favourite' } },
         { id: 'custom', component: 'Icon', name: { svgPath: 'M0 0h24v24H0z' } },
       ]),
     ])
@@ -390,8 +390,8 @@ describe('Icon', () => {
       message.createSurface(SURFACE),
       message.updateComponents(SURFACE, [
         { id: 'root', component: 'Row', children: ['priority', 'trend'] },
-        { id: 'priority', component: 'Icon', name: { path: '/priorityIcon' } },
-        { id: 'trend', component: 'Icon', name: { path: '/trendIcon' } },
+        { id: 'priority', component: 'Icon', name: { '@path': '/priorityIcon' } },
+        { id: 'trend', component: 'Icon', name: { '@path': '/trendIcon' } },
       ]),
       message.updateDataModel(SURFACE, { priorityIcon: 'priority_high', trendIcon: 'trending_up' }),
     ])
@@ -444,32 +444,21 @@ describe('Tabs and Modal', () => {
 })
 
 describe('Text', () => {
-  it('maps variants to heading elements and keeps captions in the variant colour', () => {
+  it('renders Markdown headings directly and keeps captions in the variant colour', () => {
     const { container } = renderSurface([
       message.createSurface(SURFACE),
       message.updateComponents(SURFACE, [
-        { id: 'root', component: 'Column', children: ['a', 'b', 'c'] },
-        { id: 'a', component: 'Text', text: 'Title', variant: 'h1' },
-        { id: 'b', component: 'Text', text: 'Note', variant: 'caption' },
-        { id: 'c', component: 'Text', text: 'Plain **bold** words' },
+        { id: 'root', component: 'Column', children: ['a', 'b', 'c', 'd'] },
+        { id: 'a', component: 'Text', text: '# Title' },
+        { id: 'b', component: 'Text', text: '### Details with **emphasis**' },
+        { id: 'c', component: 'Text', text: 'Note', variant: 'caption' },
+        { id: 'd', component: 'Text', text: 'Plain **bold** words' },
       ]),
     ])
     expect(screen.getByRole('heading', { level: 1, name: 'Title' })).toBeDefined()
+    expect(screen.getByRole('heading', { level: 3, name: 'Details with emphasis' })).toBeDefined()
     expect(container.querySelector('.m3e-a2ui-text--caption')?.tagName).toBe('SPAN')
     expect(container.querySelector('p strong')?.textContent).toBe('bold')
-  })
-
-  it('drops a redundant Markdown heading marker from a heading variant', () => {
-    renderSurface([
-      message.createSurface(SURFACE),
-      message.updateComponents(SURFACE, [
-        { id: 'root', component: 'Column', children: ['a', 'b'] },
-        { id: 'a', component: 'Text', text: '# Invitation Builder', variant: 'h1' },
-        { id: 'b', component: 'Text', text: '## Details with **emphasis**', variant: 'h3' },
-      ]),
-    ])
-    expect(screen.getByRole('heading', { level: 1, name: 'Invitation Builder' })).toBeDefined()
-    expect(screen.getByRole('heading', { level: 3, name: 'Details with emphasis' })).toBeDefined()
   })
 
   it('renders nested Markdown lists as lists inside list items', () => {
@@ -506,12 +495,12 @@ describe('Text', () => {
   })
 })
 
-describe('forward-compatible v1.0 properties', () => {
+describe('v1.0 basic catalog properties', () => {
   it('shows a Video poster from posterUrl', () => {
     const { container } = renderSurface([
       message.createSurface(SURFACE),
       message.updateComponents(SURFACE, [
-        { id: 'root', component: 'Video', url: 'https://example.com/clip.mp4', posterUrl: { path: '/poster' } },
+        { id: 'root', component: 'Video', url: 'https://example.com/clip.mp4', posterUrl: { '@path': '/poster' } },
       ]),
       message.updateDataModel(SURFACE, { poster: 'https://example.com/poster.jpg' }),
     ])
@@ -525,8 +514,8 @@ describe('forward-compatible v1.0 properties', () => {
       message.createSurface(SURFACE),
       message.updateComponents(SURFACE, [
         { id: 'root', component: 'Column', children: ['email', 'notes'] },
-        { id: 'email', component: 'TextField', label: 'Email', placeholder: 'you@example.com' },
-        { id: 'notes', component: 'TextField', label: 'Notes', variant: 'longText', placeholder: 'Anything else?' },
+        { id: 'email', component: 'TextField', label: 'Email', value: '', placeholder: 'you@example.com' },
+        { id: 'notes', component: 'TextField', label: 'Notes', value: '', variant: 'longText', placeholder: 'Anything else?' },
       ]),
     ])
     expect(screen.getByPlaceholderText('you@example.com').tagName).toBe('INPUT')
@@ -538,7 +527,7 @@ describe('forward-compatible v1.0 properties', () => {
     const { surface } = renderSurface([
       message.createSurface(SURFACE),
       message.updateComponents(SURFACE, [
-        { id: 'root', component: 'Slider', label: 'Rating', min: 0, max: 1, steps: 4, value: { path: '/rating' } },
+        { id: 'root', component: 'Slider', label: 'Rating', min: 0, max: 1, steps: 4, value: { '@path': '/rating' } },
       ]),
       message.updateDataModel(SURFACE, { rating: 0.3 }),
     ])

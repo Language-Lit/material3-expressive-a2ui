@@ -3,36 +3,33 @@ import {
   DynamicBooleanSchema,
   DynamicStringSchema,
   DynamicStringListSchema,
-} from '@a2ui/web_core/v0_9'
-import { ChoicePickerApi } from '@a2ui/web_core/v0_9/basic_catalog'
+} from '@a2ui/web_core/v1_0'
+import { ChoicePickerApi } from '@a2ui/web_core/catalogs/basic/v1'
 import { useId, useState } from 'react'
 
-import { referencedSchema } from '../../internal/catalogSchemas'
-import { materialControlSchema } from '../../internal/materialSchemas'
+import { defineMaterialControlSchema, materialControlBase } from '../../internal/materialSchemas'
 import { isInvalid, validationMessage } from '../../internal/checks'
 import { asText, weightStyle } from '../../internal/layout'
 import { useBoundValue } from '../../internal/useBoundValue'
 import { createMaterial3Component } from '../../runtime/adapter'
 
 const EMPTY: string[] = []
-const optionsSchema = ChoicePickerApi.schema.shape.options
-const optionSchema = optionsSchema.element.extend({
-  label: referencedSchema(optionsSchema.element.shape.label, 'DynamicString'),
-})
 const api = {
   name: 'SegmentedButtons',
-  schema: materialControlSchema.extend({
-    label: DynamicStringSchema.describe(
-      'REF:common_types.json#/$defs/DynamicString|Visible label for the group.',
-    ),
-    options: optionSchema.array().describe(optionsSchema.description ?? ''),
-    value: DynamicStringListSchema.describe(
-      'REF:common_types.json#/$defs/DynamicStringList|Selected values; single selection uses zero or one entry.',
-    ),
-    multiple: DynamicBooleanSchema.optional().describe(
-      'REF:common_types.json#/$defs/DynamicBoolean|Allow multiple selections instead of one.',
-    ),
-  }),
+  schema: defineMaterialControlSchema(
+    materialControlBase.extend({
+      label: DynamicStringSchema.describe(
+        'REF:#/$defs/DynamicString|Visible label for the group.',
+      ),
+      options: ChoicePickerApi.schema.shape.options,
+      value: DynamicStringListSchema.describe(
+        'REF:#/$defs/DynamicStringList|Selected values; single selection uses zero or one entry.',
+      ),
+      multiple: DynamicBooleanSchema.optional().describe(
+        'REF:#/$defs/DynamicBoolean|Allow multiple selections instead of one.',
+      ),
+    }),
+  ),
 }
 export const SegmentedButtonsImplementation = createMaterial3Component(api, ({ props }) => {
   const [value, setValue] = useBoundValue(props.value ?? EMPTY, props.setValue)

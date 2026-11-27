@@ -1,5 +1,5 @@
 import { Divider as MaterialDivider } from '@language-lit/material3-expressive'
-import { DividerApi } from '@a2ui/web_core/v0_9/basic_catalog'
+import { DividerApi } from '@a2ui/web_core/catalogs/basic/v1'
 
 import { cx } from '../../internal/classNames'
 import { weightStyle } from '../../internal/layout'

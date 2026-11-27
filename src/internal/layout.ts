@@ -48,6 +48,8 @@ export function weightStyle(weight: number | undefined): CSSProperties | undefin
 export interface A2uiAccessibility {
   readonly label?: string
   readonly description?: string
+  readonly live?: 'off' | 'polite' | 'assertive'
+  readonly hidden?: boolean
 }
 
 /** Text resolved from a DynamicString; anything else is stringified. */

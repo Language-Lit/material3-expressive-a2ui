@@ -1,21 +1,23 @@
 import { Tooltip as MaterialTooltip } from '@language-lit/material3-expressive'
-import { ComponentIdSchema, DynamicStringSchema } from '@a2ui/web_core/v0_9'
+import { ChildSchema, DynamicStringSchema } from '@a2ui/web_core/v1_0'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-import { materialCommonSchema } from '../../internal/materialSchemas'
+import { defineMaterialCommonSchema, materialCommonBase } from '../../internal/materialSchemas'
 import { asText, weightStyle } from '../../internal/layout'
 import { createMaterial3Component } from '../../runtime/adapter'
 
 const api = {
   name: 'Tooltip',
-  schema: materialCommonSchema.extend({
-    child: ComponentIdSchema.describe(
-      'REF:common_types.json#/$defs/ComponentId|One child containing a native focusable control, such as IconButton.',
-    ),
-    text: DynamicStringSchema.describe(
-      'REF:common_types.json#/$defs/DynamicString|Plain non-interactive tooltip text. Never a replacement for the control label.',
-    ),
-  }),
+  schema: defineMaterialCommonSchema(
+    materialCommonBase.extend({
+      child: ChildSchema.describe(
+        'REF:#/$defs/Child|One child containing a native focusable control, such as IconButton.',
+      ),
+      text: DynamicStringSchema.describe(
+        'REF:#/$defs/DynamicString|Plain non-interactive tooltip text. Never a replacement for the control label.',
+      ),
+    }),
+  ),
 }
 export const TooltipImplementation = createMaterial3Component(api, ({ props, buildChild }) => {
   const wrapper = useRef<HTMLDivElement>(null)

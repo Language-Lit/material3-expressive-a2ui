@@ -1,4 +1,4 @@
-import { ColumnApi } from '@a2ui/web_core/v0_9/basic_catalog'
+import { ColumnApi } from '@a2ui/web_core/catalogs/basic/v1'
 
 import { renderChildList } from '../../internal/children'
 import { asText, layoutClasses, weightStyle } from '../../internal/layout'

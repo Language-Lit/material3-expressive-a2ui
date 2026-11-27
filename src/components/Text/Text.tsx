@@ -1,9 +1,8 @@
 import { Text as MaterialText, type TypographyRoleName } from '@language-lit/material3-expressive'
-import { TextApi } from '@a2ui/web_core/v0_9/basic_catalog'
+import { TextApi } from '@a2ui/web_core/catalogs/basic/v1'
 import type { CSSProperties, ReactNode } from 'react'
 
 import { cx } from '../../internal/classNames'
-import { referencedSchema } from '../../internal/catalogSchemas'
 import { asText, weightStyle } from '../../internal/layout'
 import {
   hasBlockMarkdown,
@@ -16,14 +15,7 @@ import {
 } from '../../internal/markdown'
 import { createMaterial3Component } from '../../runtime/adapter'
 
-const api = {
-  name: TextApi.name,
-  schema: TextApi.schema.extend({
-    text: referencedSchema(TextApi.schema.shape.text, 'DynamicString'),
-  }),
-}
-
-type A2uiTextVariant = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'caption' | 'body'
+type A2uiTextVariant = 'caption' | 'body'
 type BlockElement = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'span'
 
 interface TextMapping {
@@ -32,35 +24,29 @@ interface TextMapping {
 }
 
 /**
- * The catalog's seven text variants on the Material type scale. Headings
- * step down the headline and title roles; `caption` is small body text in
- * the variant colour; `body` is the default reading size.
+ * The v1.0 basic catalog's text variants on the Material type scale.
+ * Headings are expressed as Markdown (`#` to `######`) in `body` text.
  */
 const TEXT_MAPPING: Readonly<Record<A2uiTextVariant, TextMapping>> = {
-  h1: { as: 'h1', variant: 'headlineLarge' },
-  h2: { as: 'h2', variant: 'headlineMedium' },
-  h3: { as: 'h3', variant: 'headlineSmall' },
-  h4: { as: 'h4', variant: 'titleLarge' },
-  h5: { as: 'h5', variant: 'titleMedium' },
   caption: { as: 'span', variant: 'bodySmall' },
   body: { as: 'p', variant: 'bodyLarge' },
 }
 
-/** Markdown headings inside a body text stay below the component's own headings. */
+/** Markdown headings map onto Material headline and title roles. */
 const MARKDOWN_HEADINGS: readonly TextMapping[] = [
-  { as: 'h2', variant: 'headlineSmall' },
-  { as: 'h3', variant: 'titleLarge' },
-  { as: 'h4', variant: 'titleMedium' },
-  { as: 'h5', variant: 'titleSmall' },
-  { as: 'h6', variant: 'titleSmall' },
+  { as: 'h1', variant: 'headlineLarge' },
+  { as: 'h2', variant: 'headlineMedium' },
+  { as: 'h3', variant: 'headlineSmall' },
+  { as: 'h4', variant: 'titleLarge' },
+  { as: 'h5', variant: 'titleMedium' },
   { as: 'h6', variant: 'titleSmall' },
 ]
 
-/** A heading variant already sets the level, so a leading `#` marker is redundant. */
+/** Leading `#` markers are stripped for captions, which do not render block Markdown. */
 const HEADING_MARKER = /^#{1,6}\s+/
 
 function isTextVariant(value: unknown): value is A2uiTextVariant {
-  return typeof value === 'string' && Object.prototype.hasOwnProperty.call(TEXT_MAPPING, value)
+  return value === 'caption' || value === 'body'
 }
 
 interface BlockTextProps {
@@ -168,7 +154,7 @@ function Block({ block }: { readonly block: MarkdownBlock }) {
   )
 }
 
-export const TextImplementation = createMaterial3Component(api, ({ props }) => {
+export const TextImplementation = createMaterial3Component(TextApi, ({ props }) => {
   const variant: A2uiTextVariant = isTextVariant(props.variant) ? props.variant : 'body'
   const mapping = TEXT_MAPPING[variant]
   const text = asText(props.text)
@@ -177,9 +163,25 @@ export const TextImplementation = createMaterial3Component(api, ({ props }) => {
   const label = asText(props.accessibility?.label) || undefined
 
   if (variant === 'body' && hasBlockMarkdown(text)) {
+    const blocks = parseMarkdownBlocks(text)
+    if (blocks.length === 1 && blocks[0]?.kind === 'heading') {
+      const heading = blocks[0]
+      const headingMapping = MARKDOWN_HEADINGS[heading.level - 1] ?? MARKDOWN_HEADINGS[5]!
+      return (
+        <BlockText
+          as={headingMapping.as}
+          variant={headingMapping.variant}
+          className={cx(className, 'm3e-a2ui-text__heading')}
+          style={style}
+          aria-label={label}
+        >
+          {renderInline(heading.text)}
+        </BlockText>
+      )
+    }
     return (
       <div className={cx(className, 'm3e-a2ui-text--rich')} style={style} aria-label={label}>
-        {parseMarkdownBlocks(text).map((block, index) => (
+        {blocks.map((block, index) => (
           <Block key={index} block={block} />
         ))}
       </div>

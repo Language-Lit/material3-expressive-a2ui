@@ -1,4 +1,4 @@
-import { MessageProcessor } from '@a2ui/web_core/v0_9'
+import { MessageProcessor } from '@a2ui/web_core'
 import { describe, expect, it } from 'vitest'
 import {
   material3Catalog,
@@ -24,6 +24,7 @@ const names = [
 describe('Material catalog contract', () => {
   it('adds exactly the nine components while reusing basic implementations and guarded functions', () => {
     expect(material3ExtendedCatalog.id).toBe(MATERIAL_CATALOG_ID)
+    expect(material3ExtendedCatalog.protocolVersion).toBe('1.0')
     expect(material3ExtendedComponents.map((item) => item.name).sort()).toEqual([...names].sort())
     expect([...material3ExtendedCatalog.components.keys()].sort()).toEqual(
       [...material3Catalog.components.keys(), ...names].sort(),
@@ -39,10 +40,12 @@ describe('Material catalog contract', () => {
 
   it('advertises binding and child references in inline capabilities', () => {
     const processor = new MessageProcessor([material3ExtendedCatalog], undefined, {
-      version: 'v0.9.1',
+      version: '1.0',
     })
-    const inline = processor.getClientCapabilities({ includeInlineCatalogs: true })['v0.9.1']
-      ?.inlineCatalogs?.[0]
+    const inline = processor.getRendererCapabilities({
+      versions: ['1.0'],
+      includeInlineCatalogs: true,
+    })['1.0']?.inlineCatalogs?.[0]
     expect(inline?.catalogId).toBe(MATERIAL_CATALOG_ID)
     expect(Object.keys(inline?.components ?? {}).sort()).toEqual(
       [...material3ExtendedCatalog.components.keys()].sort(),
@@ -52,7 +55,7 @@ describe('Material catalog contract', () => {
     expect(component('Select')).toContain('common_types.json#/$defs/DynamicString')
     expect(component('SegmentedButtons')).toContain('common_types.json#/$defs/DynamicStringList')
     expect(component('Carousel')).toContain('common_types.json#/$defs/ChildList')
-    expect(component('Tooltip')).toContain('common_types.json#/$defs/ComponentId')
+    expect(component('Tooltip')).toContain('common_types.json#/$defs/Child')
     expect(component('IconButton')).toContain('common_types.json#/$defs/Action')
   })
 
@@ -63,7 +66,7 @@ describe('Material catalog contract', () => {
     { id: 'root', component: 'SegmentedButtons', label: 'Days', options: [], value: 'a' },
     { id: 'root', component: 'Carousel', children: [{ arbitrary: 'not a child' }] },
   ])('rejects invalid $component properties through web_core', (component) => {
-    const processor = new MessageProcessor([material3ExtendedCatalog])
+    const processor = new MessageProcessor([material3ExtendedCatalog], undefined, { version: '1.0' })
     processor.processMessages([
       message.createSurface('invalid', { catalogId: MATERIAL_CATALOG_ID }),
     ])

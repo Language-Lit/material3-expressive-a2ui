@@ -1,6 +1,6 @@
 # ADR 0004: Forward-compatible v1.0 properties
 
-Status: accepted
+Status: superseded by [ADR 0009](0009-adopt-a2ui-v1.md) (2026-11-27)
 Date: 2026-09-12
 
 ## Context

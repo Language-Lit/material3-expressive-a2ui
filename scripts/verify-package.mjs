@@ -48,8 +48,9 @@ const allowedExternal = new Set([
   'react/jsx-runtime',
   'react-dom',
   '@language-lit/material3-expressive',
-  '@a2ui/web_core/v0_9',
-  '@a2ui/web_core/v0_9/basic_catalog',
+  '@a2ui/web_core',
+  '@a2ui/web_core/v1_0',
+  '@a2ui/web_core/catalogs/basic/v1',
 ])
 const entry = graph('index.js')
 for (const name of entry.external) {
@@ -74,7 +75,7 @@ function checkSources(directory) {
           assert.ok(['@language-lit/material3-expressive', '@language-lit/material3-expressive/theme', '@language-lit/material3-expressive/tokens', '@language-lit/material3-expressive/styles.css'].includes(name), `Deep import into the base library in ${file}: ${name}`)
         }
         if (name.startsWith('@a2ui/')) {
-          assert.ok(['@a2ui/web_core/v0_9', '@a2ui/web_core/v0_9/basic_catalog'].includes(name), `Only the v0_9 web_core entries may be imported (${file}): ${name}`)
+          assert.ok(['@a2ui/web_core', '@a2ui/web_core/v1_0', '@a2ui/web_core/catalogs/basic/v1'].includes(name), `Only the v1.0 web_core entries may be imported (${file}): ${name}`)
         }
         assert.notEqual(name, 'zod', `zod must stay behind @a2ui/web_core (${file})`)
       }
@@ -101,37 +102,22 @@ const catalogSource = readFileSync(path.join(root, 'src/catalog/index.ts'), 'utf
 for (const name of specComponents) {
   assert.match(catalogSource, new RegExp(`\\b${name}Implementation\\b`), `Catalog is missing ${name}`)
 }
-assert.match(catalogSource, /https:\/\/a2ui\.org\/specification\/v0_9\/catalogs\/basic\/catalog\.json/)
-
-// The minimal catalog is a subset of the basic one under its own id. Every
-// component it lists must be a basic component the minimal catalog object
-// registers, and its one function must be implemented here.
-const minimalCatalog = JSON.parse(readFileSync(path.join(root, 'fixtures/minimal/catalog.json'), 'utf8'))
-const minimalSource = catalogSource.slice(catalogSource.indexOf('material3MinimalComponents'))
-assert.ok(minimalSource.length > 0, 'Catalog is missing material3MinimalComponents')
-for (const name of Object.keys(minimalCatalog.components)) {
-  assert.ok(specComponents.includes(name), `Minimal catalog names ${name}, which the basic catalog lacks`)
-  assert.match(minimalSource, new RegExp(`\\b${name}Implementation\\b`), `Minimal catalog is missing ${name}`)
-}
-assert.match(catalogSource, /https:\/\/a2ui\.org\/specification\/v0_9\/catalogs\/minimal\/catalog\.json/)
-const functionsSource = readFileSync(path.join(root, 'src/catalog/functions.ts'), 'utf8')
-for (const name of Object.keys(minimalCatalog.functions)) {
-  assert.match(functionsSource, new RegExp(`name: '${name}'`), `Minimal catalog function ${name} is not implemented`)
-}
+assert.match(catalogSource, /https:\/\/a2ui\.org\/specification\/v1_0\/catalogs\/basic\/catalog\.json/)
 
 // Inspect the shipped objects as well as source registration. The extension
-// must not silently widen the specification's basic or minimal catalogs.
+// must not silently widen the specification's basic catalog.
 const built = await import('../dist/index.js')
 const materialNames = ['Switch', 'Select', 'IconButton', 'Chip', 'ListItem', 'Progress', 'Carousel', 'SegmentedButtons', 'Tooltip']
 assert.deepEqual([...built.material3Catalog.components.keys()].sort(), specComponents)
-assert.deepEqual([...built.material3MinimalCatalog.components.keys()].sort(), Object.keys(minimalCatalog.components).sort())
+assert.equal(built.material3Catalog.protocolVersion, '1.0')
 assert.deepEqual(built.material3ExtendedComponents.map((component) => component.name).sort(), [...materialNames].sort())
 assert.deepEqual([...built.material3ExtendedCatalog.components.keys()].sort(), [...specComponents, ...materialNames].sort())
+assert.equal(built.material3ExtendedCatalog.protocolVersion, '1.0')
 for (const name of materialNames) {
   assert.equal(built[`${name}Implementation`], built.material3ExtendedCatalog.components.get(name))
 }
 assert.equal(built.material3ExtendedCatalog.id, built.MATERIAL_CATALOG_ID)
 assert.equal(built.material3ExtendedCatalog.functions.get('openUrl'), built.OpenUrlImplementation)
-assert.deepEqual(built.material3Catalogs.map((catalog) => catalog.id), [built.BASIC_CATALOG_ID, built.MINIMAL_CATALOG_ID, built.MATERIAL_CATALOG_ID])
+assert.deepEqual(built.material3Catalogs.map((catalog) => catalog.id), [built.BASIC_CATALOG_ID, built.MATERIAL_CATALOG_ID])
 
 console.log('Package boundaries, directives, dependencies, catalog coverage and design-system usage verified.')

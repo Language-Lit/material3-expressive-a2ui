@@ -5,10 +5,9 @@ import {
   Text as MaterialText,
   TextField as MaterialTextField,
 } from '@language-lit/material3-expressive'
-import { ChoicePickerApi } from '@a2ui/web_core/v0_9/basic_catalog'
+import { ChoicePickerApi } from '@a2ui/web_core/catalogs/basic/v1'
 import { useId, useState } from 'react'
 
-import { referencedSchema } from '../../internal/catalogSchemas'
 import { isInvalid, validationMessage } from '../../internal/checks'
 import { cx } from '../../internal/classNames'
 import { asText, weightStyle } from '../../internal/layout'
@@ -16,25 +15,13 @@ import { useBoundValue } from '../../internal/useBoundValue'
 import { createMaterial3Component } from '../../runtime/adapter'
 
 const EMPTY: string[] = []
-const optionsSchema = ChoicePickerApi.schema.shape.options
-const optionSchema = optionsSchema.element.extend({
-  label: referencedSchema(optionsSchema.element.shape.label, 'DynamicString'),
-})
-const api = {
-  name: ChoicePickerApi.name,
-  schema: ChoicePickerApi.schema.extend({
-    label: referencedSchema(ChoicePickerApi.schema.shape.label, 'DynamicString'),
-    options: optionSchema.array().describe(optionsSchema.description ?? ''),
-    value: referencedSchema(ChoicePickerApi.schema.shape.value, 'DynamicStringList'),
-  }),
-}
 
 /**
  * Selection is a string list either way: one entry when the picker is
  * mutually exclusive, any number otherwise. `checkbox` style renders radios
  * or checkboxes with labels; `chips` style renders filter chips.
  */
-export const ChoicePickerImplementation = createMaterial3Component(api, ({ props, context }) => {
+export const ChoicePickerImplementation = createMaterial3Component(ChoicePickerApi, ({ props, context }) => {
   const exclusive = props.variant !== 'multipleSelection'
   const chips = props.displayStyle === 'chips'
   const bound = Array.isArray(props.value) ? (props.value as string[]) : EMPTY
@@ -42,7 +29,7 @@ export const ChoicePickerImplementation = createMaterial3Component(api, ({ props
   const [query, setQuery] = useState('')
   const [touched, setTouched] = useState(false)
   const groupId = useId()
-  const radioName = `${context.dataContext.surface.id}:${context.componentModel.id}`
+  const radioName = `${context.dataContext.surface?.id ?? 'surface'}:${context.componentModel.id}`
 
   const options = Array.isArray(props.options) ? props.options : []
   const needle = query.trim().toLowerCase()

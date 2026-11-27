@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { A2uiClientAction } from '@a2ui/web_core/v0_9'
+import type { ActionPayload } from '@a2ui/web_core'
 import {
   Button,
   Material3Provider,
@@ -122,7 +122,7 @@ export function App() {
   )
 
   const a2ui = useA2ui({
-    onAction: (action: A2uiClientAction) => {
+    onAction: (action: ActionPayload) => {
       setLog((entries) =>
         append(entries, {
           kind: 'action',
@@ -185,7 +185,7 @@ export function App() {
               A2UI · Material 3 Expressive
             </Text>
             <Text as="p" variant="bodySmall" style={{ margin: 0 }}>
-              The specification’s basic and minimal examples plus the Material extension catalog, streamed one message at a time.
+              The A2UI v1.0 basic catalog examples plus the Material extension catalog, streamed one message at a time.
             </Text>
           </div>
           <div className="pg-bar__actions">
@@ -224,7 +224,7 @@ export function App() {
           </Surface>
           <Surface color="surface-container-low" shape="extra-large" className="pg-log">
             <Text as="h2" variant="titleSmall" style={{ margin: 0 }}>
-              Client → server
+              Renderer → agent
             </Text>
             {log.length === 0 ? (
               <Text as="p" variant="bodySmall" style={{ margin: 0 }}>

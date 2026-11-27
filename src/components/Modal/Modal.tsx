@@ -1,5 +1,5 @@
 import { Button as MaterialButton, Dialog as MaterialDialog } from '@language-lit/material3-expressive'
-import { ModalApi } from '@a2ui/web_core/v0_9/basic_catalog'
+import { ModalApi } from '@a2ui/web_core/catalogs/basic/v1'
 import { useState } from 'react'
 
 import { asText, weightStyle } from '../../internal/layout'

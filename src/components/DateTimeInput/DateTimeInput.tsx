@@ -1,5 +1,5 @@
 import * as Material3 from '@language-lit/material3-expressive'
-import { DateTimeInputApi } from '@a2ui/web_core/v0_9/basic_catalog'
+import { DateTimeInputApi } from '@a2ui/web_core/catalogs/basic/v1'
 import {
   useEffect,
   useRef,
@@ -10,22 +10,11 @@ import {
   type ReactNode,
 } from 'react'
 
-import { referencedSchema } from '../../internal/catalogSchemas'
 import { isInvalid, validationMessage } from '../../internal/checks'
 import { cx } from '../../internal/classNames'
 import { asText, weightStyle } from '../../internal/layout'
 import { useBoundValue } from '../../internal/useBoundValue'
 import { createMaterial3Component } from '../../runtime/adapter'
-
-const api = {
-  name: DateTimeInputApi.name,
-  schema: DateTimeInputApi.schema.extend({
-    value: referencedSchema(DateTimeInputApi.schema.shape.value, 'DynamicString'),
-    min: referencedSchema(DateTimeInputApi.schema.shape.min, 'DynamicString'),
-    max: referencedSchema(DateTimeInputApi.schema.shape.max, 'DynamicString'),
-    label: referencedSchema(DateTimeInputApi.schema.shape.label, 'DynamicString'),
-  }),
-}
 
 type PickerType = 'date' | 'time' | 'datetime-local'
 
@@ -122,7 +111,7 @@ function pickerFor(type: PickerType): PickerCapability | undefined {
  * native input remains as a compatibility fallback for the declared 1.2 peer
  * floor, which predates the picker exports.
  */
-export const DateTimeInputImplementation = createMaterial3Component(api, ({ props }) => {
+export const DateTimeInputImplementation = createMaterial3Component(DateTimeInputApi, ({ props }) => {
   const enableDate = props.enableDate === true
   const enableTime = props.enableTime === true
   const type: PickerType =

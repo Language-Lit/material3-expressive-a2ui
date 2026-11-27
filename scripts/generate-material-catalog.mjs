@@ -4,10 +4,10 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 
 export const MATERIAL_CATALOG_ID = 'https://m3e.language-lit.com/a2ui/catalogs/material3/catalog.json'
 export const MATERIAL_CATALOG_ROUTE = 'public/a2ui/catalogs/material3/catalog.json'
-const COMMON_TYPES_URL = 'https://a2ui.org/specification/v0_9/common_types.json#'
+const COMMON_TYPES_URL = 'https://a2ui.org/specification/v1_0/common_types.json#'
 
 /**
- * Convert the v0.9 inline capability produced by web_core into a hosted
+ * Convert the v1.0 inline catalog produced by web_core into a standalone hosted
  * catalog document. Keeping this conversion separate from the CLI lets tests
  * exercise it with a source catalog before `dist/` exists.
  */
@@ -25,19 +25,26 @@ export function buildMaterialCatalogSchema(inlineCatalog) {
   const components = Object.fromEntries(
     componentEntries.map(([name, schema]) => [name, normalizeSchema(schema)]),
   )
-  // Function order is part of the capability web_core produced. Object keys
-  // are sorted during serialization, but arrays retain their source order.
-  const functions = (inlineCatalog.functions ?? []).map((definition) => normalizeSchema(definition))
+
+  const functionEntries = Object.entries(inlineCatalog.functions ?? {}).sort(([left], [right]) =>
+    left < right ? -1 : left > right ? 1 : 0,
+  )
+  const functions = Object.fromEntries(
+    functionEntries.map(([name, definition]) => [name, normalizeSchema(definition)]),
+  )
+
+  const defs = inlineCatalog.$defs ? normalizeSchema(inlineCatalog.$defs) : undefined
 
   return sortRecord({
     $schema: 'https://json-schema.org/draft/2020-12/schema',
     $id: MATERIAL_CATALOG_ID,
+    protocolVersion: inlineCatalog.protocolVersion ?? '1.0',
     title: 'Material 3 Expressive A2UI Catalog',
-    description: 'Material 3 Expressive extensions and the A2UI v0.9 basic catalog.',
+    description: 'Material 3 Expressive extensions and the A2UI v1.0 basic catalog.',
     catalogId: MATERIAL_CATALOG_ID,
     components,
     functions,
-    ...(inlineCatalog.theme ? { theme: normalizeSchema(inlineCatalog.theme) } : {}),
+    ...(defs ? { $defs: defs } : {}),
   })
 }
 
@@ -47,7 +54,17 @@ export function validateMaterialCatalogSchema(schema) {
     throw new Error('Catalog schema must be a JSON object')
   }
   const keys = Object.keys(schema).sort()
-  const allowed = ['$id', '$schema', 'catalogId', 'components', 'description', 'functions', 'theme', 'title']
+  const allowed = [
+    '$defs',
+    '$id',
+    '$schema',
+    'catalogId',
+    'components',
+    'description',
+    'functions',
+    'protocolVersion',
+    'title',
+  ]
   const unknown = keys.filter((key) => !allowed.includes(key))
   if (unknown.length > 0) {
     throw new Error(`Unexpected catalog root keys: ${unknown.join(', ')}`)
@@ -55,15 +72,23 @@ export function validateMaterialCatalogSchema(schema) {
   if (schema.$id !== MATERIAL_CATALOG_ID || schema.catalogId !== MATERIAL_CATALOG_ID) {
     throw new Error('Catalog id metadata does not match the hosted Material catalog id')
   }
+  if (schema.protocolVersion !== '1.0') {
+    throw new Error(`Expected protocolVersion 1.0, received ${String(schema.protocolVersion)}`)
+  }
   if (!schema.components || typeof schema.components !== 'object' || Array.isArray(schema.components)) {
     throw new Error('Catalog must declare a components object')
   }
-  if (!Array.isArray(schema.functions)) {
-    throw new Error('Catalog must declare web_core inline functions as an array')
+  if (!schema.functions || typeof schema.functions !== 'object' || Array.isArray(schema.functions)) {
+    throw new Error('Catalog must declare v1.0 functions as an object map')
   }
   for (const [name, component] of Object.entries(schema.components)) {
     if (!component || typeof component !== 'object' || Array.isArray(component)) {
       throw new Error(`Component ${name} is not a schema object`)
+    }
+  }
+  for (const [name, fn] of Object.entries(schema.functions)) {
+    if (!fn || typeof fn !== 'object' || Array.isArray(fn)) {
+      throw new Error(`Function ${name} is not a schema object`)
     }
   }
   walkRefs(schema, (ref, location) => {
@@ -82,16 +107,6 @@ export function validateMaterialCatalogSchema(schema) {
       throw new Error(`Catalog contains a relative reference at ${location}: ${ref}`)
     }
   })
-  const functionNames = new Set()
-  for (const fn of schema.functions) {
-    if (!fn || typeof fn !== 'object' || Array.isArray(fn) || typeof fn.name !== 'string') {
-      throw new Error('Catalog contains an invalid inline function definition')
-    }
-    if (functionNames.has(fn.name)) {
-      throw new Error(`Catalog declares function ${fn.name} more than once`)
-    }
-    functionNames.add(fn.name)
-  }
   return schema
 }
 
@@ -157,16 +172,18 @@ export function serializeMaterialCatalogSchema(schema) {
 async function generateHostedCatalog() {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
   const built = await import(pathToFileURL(path.join(root, 'dist/index.js')).href)
-  const { MessageProcessor } = await import('@a2ui/web_core/v0_9')
-  const processor = new MessageProcessor([built.material3ExtendedCatalog], undefined, { version: 'v0.9.1' })
-  const inline = processor.getClientCapabilities({ includeInlineCatalogs: true })['v0.9.1']?.inlineCatalogs?.[0]
+  const { Catalog, MessageProcessor } = await import('@a2ui/web_core')
+  const processor = new MessageProcessor([built.material3ExtendedCatalog], undefined, { version: '1.0' })
+  const inline = processor.getRendererCapabilities({
+    versions: ['1.0'],
+    includeInlineCatalogs: true,
+  })['1.0']?.inlineCatalogs?.[0]
   const schema = buildMaterialCatalogSchema(inline)
 
-  // Catalog.fromSchema is web_core's public schema loader. Round-tripping the
-  // generated document catches malformed component/function contracts without
-  // introducing a JSON-schema runtime dependency into this package.
-  const { Catalog } = await import('@a2ui/web_core/v0_9')
-  Catalog.fromSchema(validateMaterialCatalogSchema(schema))
+  // Catalog.fromJson is web_core's public v1.0 catalog loader. Round-tripping
+  // the generated document catches malformed component/function contracts
+  // without introducing a JSON-schema runtime dependency into this package.
+  Catalog.fromJson(validateMaterialCatalogSchema(schema), '1.0')
 
   const output = path.join(root, MATERIAL_CATALOG_ROUTE)
   const serialized = serializeMaterialCatalogSchema(schema)

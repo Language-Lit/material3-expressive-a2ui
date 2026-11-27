@@ -3,14 +3,14 @@
   "description": "Nine Material additions with bound preferences, actions, progress and a templated carousel.",
   "messages": [
     {
-      "version": "v0.9",
+      "version": "1.0",
       "createSurface": {
         "surfaceId": "material-demo",
         "catalogId": "https://m3e.language-lit.com/a2ui/catalogs/material3/catalog.json"
       }
     },
     {
-      "version": "v0.9",
+      "version": "1.0",
       "updateDataModel": {
         "surfaceId": "material-demo",
         "value": {
@@ -39,7 +39,7 @@
       }
     },
     {
-      "version": "v0.9",
+      "version": "1.0",
       "updateComponents": {
         "surfaceId": "material-demo",
         "components": [
@@ -63,8 +63,7 @@
           {
             "id": "title",
             "component": "Text",
-            "text": "Your next adventure",
-            "variant": "h2"
+            "text": "## Your next adventure"
           },
           {
             "id": "intro",
@@ -76,7 +75,7 @@
             "component": "Switch",
             "label": "Trip notifications",
             "value": {
-              "path": "/notifications"
+              "@path": "/notifications"
             }
           },
           {
@@ -84,7 +83,7 @@
             "component": "Select",
             "label": "Travel style",
             "value": {
-              "path": "/plan"
+              "@path": "/plan"
             },
             "options": [
               {
@@ -112,7 +111,7 @@
               }
             ],
             "value": {
-              "path": "/days"
+              "@path": "/days"
             }
           },
           {
@@ -129,23 +128,23 @@
             "component": "Chip",
             "label": "Save trip",
             "value": {
-              "path": "/favorite"
+              "@path": "/favorite"
             },
             "action": {
               "event": {
                 "name": "save_trip",
                 "context": {
                   "notifications": {
-                    "path": "/notifications"
+                    "@path": "/notifications"
                   },
                   "plan": {
-                    "path": "/plan"
+                    "@path": "/plan"
                   },
                   "favorite": {
-                    "path": "/favorite"
+                    "@path": "/favorite"
                   },
                   "days": {
-                    "path": "/days"
+                    "@path": "/days"
                   }
                 }
               }
@@ -160,16 +159,16 @@
                 "name": "suggest_destination",
                 "context": {
                   "notifications": {
-                    "path": "/notifications"
+                    "@path": "/notifications"
                   },
                   "plan": {
-                    "path": "/plan"
+                    "@path": "/plan"
                   },
                   "favorite": {
-                    "path": "/favorite"
+                    "@path": "/favorite"
                   },
                   "days": {
-                    "path": "/days"
+                    "@path": "/days"
                   }
                 }
               }
@@ -180,7 +179,7 @@
             "component": "Progress",
             "label": "Trip readiness",
             "value": {
-              "path": "/progress"
+              "@path": "/progress"
             }
           },
           {
@@ -205,16 +204,16 @@
                 "name": "help",
                 "context": {
                   "notifications": {
-                    "path": "/notifications"
+                    "@path": "/notifications"
                   },
                   "plan": {
-                    "path": "/plan"
+                    "@path": "/plan"
                   },
                   "favorite": {
-                    "path": "/favorite"
+                    "@path": "/favorite"
                   },
                   "days": {
-                    "path": "/days"
+                    "@path": "/days"
                   }
                 }
               }
@@ -231,16 +230,16 @@
                 "name": "review",
                 "context": {
                   "notifications": {
-                    "path": "/notifications"
+                    "@path": "/notifications"
                   },
                   "plan": {
-                    "path": "/plan"
+                    "@path": "/plan"
                   },
                   "favorite": {
-                    "path": "/favorite"
+                    "@path": "/favorite"
                   },
                   "days": {
-                    "path": "/days"
+                    "@path": "/days"
                   }
                 }
               }
@@ -253,36 +252,38 @@
               "componentId": "destination",
               "path": "/destinations"
             },
-            "accessibility": {
+            "@accessibility": {
               "label": "Destinations"
             }
           },
           {
             "id": "destination",
             "component": "Card",
-            "child": "destination-content"
+            "child": "destination_content"
           },
           {
-            "id": "destination-content",
+            "id": "destination_content",
             "component": "Column",
             "children": [
-              "destination-title",
-              "destination-description"
+              "destination_title",
+              "destination_description"
             ]
           },
           {
-            "id": "destination-title",
+            "id": "destination_title",
             "component": "Text",
             "text": {
-              "path": "name"
-            },
-            "variant": "h3"
+              "@call": "formatString",
+              "args": {
+                "value": "### ${name}"
+              }
+            }
           },
           {
-            "id": "destination-description",
+            "id": "destination_description",
             "component": "Text",
             "text": {
-              "path": "description"
+              "@path": "description"
             }
           }
         ]

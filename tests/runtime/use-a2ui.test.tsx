@@ -1,5 +1,6 @@
-import type { A2uiClientAction, A2uiMessage } from '@a2ui/web_core/v0_9'
-import { ButtonApi, TextApi } from '@a2ui/web_core/v0_9/basic_catalog'
+import type { ActionPayload, OutboundMessageListener } from '@a2ui/web_core'
+import type { AgentToRendererMessage } from '@a2ui/web_core/v1_0'
+import { ButtonApi, TextApi } from '@a2ui/web_core/catalogs/basic/v1'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { StrictMode, useEffect } from 'react'
 import { describe, expect, it, vi } from 'vitest'
@@ -10,7 +11,6 @@ import {
   BASIC_CATALOG_ID,
   createMaterial3Catalog,
   MATERIAL_CATALOG_ID,
-  MINIMAL_CATALOG_ID,
 } from '../../src/catalog'
 import { A2uiSurface } from '../../src/runtime/A2uiSurface'
 import {
@@ -24,14 +24,16 @@ function Host({
   onReady,
   onAction,
   onError,
+  outboundListener,
   catalogs,
 }: {
   onReady: (a2ui: UseA2uiResult) => void
-  onAction?: (action: A2uiClientAction) => void
+  onAction?: (action: ActionPayload) => void
   onError?: (error: unknown, surfaceId?: string) => void
+  outboundListener?: OutboundMessageListener
   catalogs?: UseA2uiOptions['catalogs']
 }) {
-  const a2ui = useA2ui({ catalogs, onAction, onError })
+  const a2ui = useA2ui({ catalogs, onAction, onError, outboundListener })
   useEffect(() => {
     onReady(a2ui)
   }, [a2ui, onReady])
@@ -53,8 +55,9 @@ describe('useA2ui', () => {
 
     act(() => {
       a2ui.processMessages([
-        message.createSurface('a', { theme: { agentDisplayName: 'Concierge' } }),
-        message.updateComponents('a', [{ id: 'root', component: 'Text', text: 'Hello from A' }]),
+        message.createSurface('a', {
+          components: [{ id: 'root', component: 'Text', text: 'Hello from A' }],
+        }),
         message.createSurface('b'),
         message.updateComponents('b', [{ id: 'root', component: 'Text', text: 'Hello from B' }]),
       ])
@@ -62,7 +65,6 @@ describe('useA2ui', () => {
     expect(screen.getByTestId('count').textContent).toBe('2')
     expect(screen.getByText('Hello from A')).toBeDefined()
     expect(screen.getByText('Hello from B')).toBeDefined()
-    expect(screen.getByText('Concierge')).toBeDefined()
 
     act(() => {
       a2ui.processMessages([message.deleteSurface('a')])
@@ -76,13 +78,20 @@ describe('useA2ui', () => {
     expect(screen.getByTestId('count').textContent).toBe('0')
   })
 
-  it('exposes capabilities and forwards actions and errors', () => {
+  it('exposes v1.0 capabilities and forwards actions and errors', () => {
     const onAction = vi.fn()
     const onError = vi.fn()
     let a2ui!: UseA2uiResult
     render(wrap(<Host onReady={(value) => (a2ui = value)} onAction={onAction} onError={onError} />))
 
-    expect(a2ui.getClientCapabilities()['v0.9.1']?.supportedCatalogIds).toEqual([BASIC_CATALOG_ID, MINIMAL_CATALOG_ID, MATERIAL_CATALOG_ID])
+    expect(a2ui.getRendererCapabilities({ versions: ['1.0'] })['1.0']?.supportedCatalogIds).toEqual([
+      BASIC_CATALOG_ID,
+      MATERIAL_CATALOG_ID,
+    ])
+    expect(a2ui.getClientCapabilities({ versions: ['1.0'] })['1.0']?.supportedCatalogIds).toEqual([
+      BASIC_CATALOG_ID,
+      MATERIAL_CATALOG_ID,
+    ])
 
     act(() => {
       a2ui.processMessages([message.createSurface('x', { catalogId: 'https://example.com/none.json' })])
@@ -105,15 +114,90 @@ describe('useA2ui', () => {
     expect(onAction.mock.calls[0]?.[0]).toMatchObject({ name: 'ping', surfaceId: 's', context: { n: 1 } })
   })
 
+  it('handles v1.0 bidirectional renderer and agent function RPCs', async () => {
+    const outbound: Parameters<OutboundMessageListener>[0][] = []
+    const rpcCatalogId = 'https://example.com/rpc-catalog.json'
+    const echoFunction = {
+      name: 'echo',
+      returnType: 'string' as const,
+      allowedCallers: 'rendererOrAgent' as const,
+      schema: TextApi.schema.pick({ text: true }),
+      execute: (args: Record<string, unknown>) => `echo:${String(args['text'] ?? '')}`,
+    }
+    const rpcCatalog = createMaterial3Catalog({
+      id: rpcCatalogId,
+      functions: [echoFunction],
+    })
+    let a2ui!: UseA2uiResult
+    render(
+      wrap(
+        <Host
+          onReady={(value) => (a2ui = value)}
+          catalogs={[rpcCatalog]}
+          outboundListener={(msg) => {
+            outbound.push(msg)
+          }}
+        />,
+      ),
+    )
+
+    act(() => {
+      a2ui.processMessages([
+        message.createSurface('rpc', {
+          catalogId: rpcCatalogId,
+          components: [{ id: 'root', component: 'Text', text: 'RPC ready' }],
+          dataModel: { label: 'hello' },
+        }),
+      ])
+    })
+
+    await act(async () => {
+      await a2ui.processMessagesAsync([
+        message.callRendererFunction(
+          'rpc',
+          'call-1',
+          'echo',
+          { text: { '@path': '/label' } },
+          rpcCatalogId,
+        ),
+      ])
+    })
+
+    const rendererResponse = outbound.find((msg) => 'rendererFunctionResponse' in msg)
+    expect(rendererResponse).toMatchObject({
+      version: '1.0',
+      rendererFunctionResponse: {
+        functionCallId: 'call-1',
+        value: 'echo:hello',
+      },
+    })
+
+    let pending!: Promise<unknown>
+    act(() => {
+      pending = a2ui.callAgentFunction('rpc', { '@call': 'lookupPrice', args: { sku: 'M3E' } })
+    })
+    const agentCall = outbound.find((msg) => 'callAgentFunction' in msg)
+    expect(agentCall).toBeDefined()
+    const functionCallId =
+      agentCall && 'callAgentFunction' in agentCall ? agentCall.callAgentFunction.functionCallId : ''
+
+    act(() => {
+      a2ui.processMessages([
+        message.agentFunctionResponse(functionCallId, { value: { price: 19.99 } }),
+      ])
+    })
+    await expect(pending).resolves.toEqual({ price: 19.99 })
+  })
+
   it('validates the whole message batch before mutating the processor', () => {
     const onError = vi.fn()
     let a2ui!: UseA2uiResult
     render(wrap(<Host onReady={(value) => (a2ui = value)} onError={onError} />))
 
     const invalidVersion = {
-      version: 'v1.0',
+      version: 'v0.9',
       createSurface: { surfaceId: 'invalid-version', catalogId: BASIC_CATALOG_ID },
-    } as unknown as A2uiMessage
+    } as unknown as AgentToRendererMessage
 
     act(() => {
       a2ui.processMessages([message.createSurface('valid'), invalidVersion])
@@ -125,9 +209,9 @@ describe('useA2ui', () => {
 
   it('reports malformed envelopes through onError or throws without a handler', () => {
     const malformed = {
-      version: 'v0.9',
-      createSurface: { surfaceId: 'missing-catalog' },
-    } as unknown as A2uiMessage
+      version: '1.0',
+      createSurface: { surfaceId: 123 },
+    } as unknown as AgentToRendererMessage
     const onError = vi.fn()
     let handled!: UseA2uiResult
     render(wrap(<Host onReady={(value) => (handled = value)} onError={onError} />))
@@ -168,7 +252,13 @@ describe('useA2ui', () => {
         messages: [
           message.createSurface('wrapped', { catalogId }),
           message.updateComponents('wrapped', [
-            { id: 'root', component: 'CustomButton', badge: 'Custom badge', child: 'label' },
+            {
+              id: 'root',
+              component: 'CustomButton',
+              badge: 'Custom badge',
+              child: 'label',
+              action: { event: { name: 'custom' } },
+            },
             { id: 'label', component: 'Text', text: 'Wrapped' },
           ]),
         ],
@@ -183,18 +273,18 @@ describe('useA2ui', () => {
     // web_core keeps updateDataModel values by reference and writes bound
     // input into them. A transcript kept in state, or a fixture played twice,
     // must not carry a previous session's edits.
-    const batch = [
-      { version: 'v0.9.1' as const, createSurface: { surfaceId: 'form', catalogId: BASIC_CATALOG_ID, sendDataModel: true } },
+    const batch: AgentToRendererMessage[] = [
+      { version: '1.0', createSurface: { surfaceId: 'form', catalogId: BASIC_CATALOG_ID, sendDataModel: true } },
       {
-        version: 'v0.9.1' as const,
+        version: '1.0',
         updateComponents: {
           surfaceId: 'form',
           components: [
-            { id: 'root', component: 'TextField', label: 'Name', value: { path: '/name' } },
+            { id: 'root', component: 'TextField', label: 'Name', value: { '@path': '/name' } },
           ],
         },
       },
-      { version: 'v0.9.1' as const, updateDataModel: { surfaceId: 'form', value: { name: '' } } },
+      { version: '1.0', updateDataModel: { surfaceId: 'form', value: { name: '' } } },
     ]
     const original = JSON.stringify(batch)
 
@@ -202,6 +292,7 @@ describe('useA2ui', () => {
     const first = render(wrap(<Host onReady={(value) => (a2ui = value)} />))
     act(() => a2ui.processMessages(batch))
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Ada' } })
+    expect(a2ui.getRendererDataModel()?.surfaces).toEqual({ form: { name: 'Ada' } })
     expect(a2ui.getClientDataModel()?.surfaces).toEqual({ form: { name: 'Ada' } })
     expect(JSON.stringify(batch)).toBe(original)
     first.unmount()
@@ -209,7 +300,7 @@ describe('useA2ui', () => {
     render(wrap(<Host onReady={(value) => (a2ui = value)} />))
     act(() => a2ui.processMessages(batch))
     expect((screen.getByLabelText('Name') as HTMLInputElement).value).toBe('')
-    expect(a2ui.getClientDataModel()?.surfaces).toEqual({ form: { name: '' } })
+    expect(a2ui.getRendererDataModel()?.surfaces).toEqual({ form: { name: '' } })
   })
 
   it('survives a StrictMode remount that replays a mount-time batch', () => {

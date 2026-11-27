@@ -1,23 +1,27 @@
 import { ListItem as MaterialListItem } from '@language-lit/material3-expressive'
-import { ActionSchema, DynamicStringSchema } from '@a2ui/web_core/v0_9'
+import { ActionSchema, DynamicStringSchema } from '@a2ui/web_core/v1_0'
 
-import { materialControlSchema } from '../../internal/materialSchemas'
+import { defineMaterialControlSchema, materialControlBase } from '../../internal/materialSchemas'
 import { isInvalid } from '../../internal/checks'
 import { asText, weightStyle } from '../../internal/layout'
 import { createMaterial3Component } from '../../runtime/adapter'
 
 const api = {
   name: 'ListItem',
-  schema: materialControlSchema.extend({
-    headline: DynamicStringSchema.describe(
-      'REF:common_types.json#/$defs/DynamicString|Main item text.',
-    ),
-    supportingText: DynamicStringSchema.optional(),
-    overline: DynamicStringSchema.optional(),
-    action: ActionSchema.optional().describe(
-      'REF:common_types.json#/$defs/Action|Makes the whole row an action button when supplied.',
-    ),
-  }),
+  schema: defineMaterialControlSchema(
+    materialControlBase.extend({
+      headline: DynamicStringSchema.describe('REF:#/$defs/DynamicString|Main item text.'),
+      supportingText: DynamicStringSchema.optional().describe(
+        'REF:#/$defs/DynamicString|Optional secondary text shown below the headline.',
+      ),
+      overline: DynamicStringSchema.optional().describe(
+        'REF:#/$defs/DynamicString|Optional small label shown above the headline.',
+      ),
+      action: ActionSchema.optional().describe(
+        'REF:#/$defs/Action|Makes the whole row an action button when supplied.',
+      ),
+    }),
+  ),
 }
 export const ListItemImplementation = createMaterial3Component(api, ({ props }) => {
   const common = {

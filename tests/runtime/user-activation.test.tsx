@@ -1,4 +1,4 @@
-import { ButtonApi } from '@a2ui/web_core/v0_9/basic_catalog'
+import { ButtonApi } from '@a2ui/web_core/catalogs/basic/v1'
 import { act, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest'
@@ -10,7 +10,7 @@ import { createMaterial3Component } from '../../src/runtime/adapter'
 
 const SURFACE = 'gesture'
 const URL = 'https://example.com/docs'
-const openDocs = { call: 'openUrl', args: { url: URL } }
+const openDocs = { '@call': 'openUrl', args: { url: URL } }
 
 const openButton = [
   { id: 'root', component: 'Button', child: 'label', action: { functionCall: openDocs } },
@@ -48,14 +48,14 @@ describe('openUrl user activation', () => {
     expect(open).not.toHaveBeenCalled()
     expect(errors.length).toBeGreaterThan(0)
     expect(errors[0]).toMatchObject({ code: 'EXPRESSION_ERROR', expression: 'openUrl' })
-    expect((errors[0] as { message: string }).message).toContain('user-initiated action')
+    expect((errors[0] as { message: string }).message).toContain('user activation')
   })
 
   it('refuses a call a data-model update re-evaluates', () => {
     const { processor, errors } = renderSurface([
       message.createSurface(SURFACE),
       message.updateComponents(SURFACE, [
-        { id: 'root', component: 'Text', text: { call: 'openUrl', args: { url: { path: '/target' } } } },
+        { id: 'root', component: 'Text', text: { '@call': 'openUrl', args: { url: { '@path': '/target' } } } },
       ]),
       message.updateDataModel(SURFACE, { target: 'https://example.com/first' }),
     ])
@@ -75,8 +75,8 @@ describe('openUrl user activation', () => {
       message.createSurface(SURFACE),
       message.updateComponents(SURFACE, [
         { id: 'root', component: 'Column', children: ['field', 'echo'] },
-        { id: 'field', component: 'TextField', label: 'Target', value: { path: '/target' } },
-        { id: 'echo', component: 'Text', text: { call: 'openUrl', args: { url: { path: '/target' } } } },
+        { id: 'field', component: 'TextField', label: 'Target', value: { '@path': '/target' } },
+        { id: 'echo', component: 'Text', text: { '@call': 'openUrl', args: { url: { '@path': '/target' } } } },
       ]),
       message.updateDataModel(SURFACE, { target: 'https://example.com/' }),
     ])

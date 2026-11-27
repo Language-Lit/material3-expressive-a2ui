@@ -1,7 +1,7 @@
 import { Chip as MaterialChip } from '@language-lit/material3-expressive'
-import { ActionSchema, DynamicBooleanSchema, DynamicStringSchema } from '@a2ui/web_core/v0_9'
+import { ActionSchema, DynamicBooleanSchema, DynamicStringSchema } from '@a2ui/web_core/v1_0'
 
-import { materialControlSchema } from '../../internal/materialSchemas'
+import { defineMaterialControlSchema, materialControlBase } from '../../internal/materialSchemas'
 import { isInvalid } from '../../internal/checks'
 import { asText, weightStyle } from '../../internal/layout'
 import { useBoundValue } from '../../internal/useBoundValue'
@@ -9,17 +9,17 @@ import { createMaterial3Component } from '../../runtime/adapter'
 
 const api = {
   name: 'Chip',
-  schema: materialControlSchema.extend({
-    label: DynamicStringSchema.describe(
-      'REF:common_types.json#/$defs/DynamicString|Visible chip label.',
-    ),
-    value: DynamicBooleanSchema.optional().describe(
-      'REF:common_types.json#/$defs/DynamicBoolean|When supplied, renders a filter chip with this selected state; otherwise an assist chip.',
-    ),
-    action: ActionSchema.optional().describe(
-      'REF:common_types.json#/$defs/Action|Action dispatched on activation, after writing selected state when applicable.',
-    ),
-  }),
+  schema: defineMaterialControlSchema(
+    materialControlBase.extend({
+      label: DynamicStringSchema.describe('REF:#/$defs/DynamicString|Visible chip label.'),
+      value: DynamicBooleanSchema.optional().describe(
+        'REF:#/$defs/DynamicBoolean|When supplied, renders a filter chip with this selected state; otherwise an assist chip.',
+      ),
+      action: ActionSchema.optional().describe(
+        'REF:#/$defs/Action|Action dispatched on activation, after writing selected state when applicable.',
+      ),
+    }),
+  ),
 }
 export const ChipImplementation = createMaterial3Component(api, ({ props, context }) => {
   const [value, setValue] = useBoundValue(props.value === true, props.setValue)

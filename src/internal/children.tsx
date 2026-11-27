@@ -1,5 +1,5 @@
 import { Fragment, type ReactNode } from 'react'
-import type { ResolvedChildRef } from '@a2ui/web_core/v0_9'
+import type { ResolvedChildRef } from '@a2ui/web_core'
 
 import type { BuildChild } from '../runtime/adapter'
 

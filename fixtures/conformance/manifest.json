@@ -1,49 +1,59 @@
 {
   "repository": "https://github.com/a2ui-project/a2ui",
-  "commit": "1c45c809b655878d06e3afc6dda22100afecc0a4",
+  "commit": "36725eee042da90c526f469f94246f96e16fdc35",
   "sourceFiles": {
     "conformance/core/data_model.yaml": {
-      "sha256": "cc2d4146d2f6cbd47cd9ea5f07722a51a6dbc6ccd7cfa88a145e0e5e556be3fd",
+      "sha256": "3b4c7c03fb8d6dfe0d8580246fa73c1eb3c1c7ebe6998c7aaff11e014c18b81a",
       "generatedFile": "data-model.json",
-      "generatedSha256": "de0c148c21dc1d0f71684d95a63d5ff0bb1c2d69ae3fd6b905350c66ca0020c2",
-      "caseCount": 37
+      "generatedSha256": "dac19d95e8d744232def741d0a471fb6224ec99473eeb9b370724917a359e83f",
+      "caseCount": 52
     },
     "conformance/core/expressions.yaml": {
-      "sha256": "27f447854f3431d534d143eb439a977b61fdf0d96d2581699852761f5c7d91d8",
+      "sha256": "d4735a902e2f3246debc4c9397733752062c74eedc3dc3331b9678dd58728b23",
       "generatedFile": "expressions.json",
-      "generatedSha256": "4acd5711ddcd18270349b8fa9ac7cf4a0182f76a22cb43b32bfb2c8ae4131928",
-      "caseCount": 31
+      "generatedSha256": "dcd78b2f1cdf2a8d0d7bbf8d968e42f6d37cfd4df92f111c617730c2e06ca01a",
+      "caseCount": 92,
+      "selectedAction": "parse_expression_template",
+      "upstreamCaseCount": 98
     },
-    "conformance/core/message_processor.yaml": {
-      "sha256": "52d3d728885b4ca4ae0faf024071cb98446dd99dfa146d2fd764165497b7c062",
+    "conformance/core/message_processor_v1_0.yaml": {
+      "sha256": "106dbefdbc0bd917f13dd5d93ea56242288ea8af2a30cbb33b74a5807038c154",
       "generatedFile": "message-processor.json",
-      "generatedSha256": "af980e2f13224038f8b65df8461d81a36dfae0d7b2aa91377d99fa9a8ed515f8",
-      "caseCount": 2
+      "generatedSha256": "c9eb313af62163ad5ad0a7775cf00965211f4e8be8ba3fbeee20176be6f9f5fb",
+      "caseCount": 9,
+      "selectedCases": [
+        "test_v10_create_surface_inline_initialization",
+        "test_v10_create_surface_optional_catalog_id",
+        "test_v10_create_surface_with_metadata_extensions",
+        "test_v10_update_data_model_deletion",
+        "test_batch_multi_stage_lifecycle_pipeline",
+        "test_delete_non_existent_surface_is_safe_noop",
+        "test_v10_update_components_stores_component_metadata",
+        "test_v10_update_components_replaces_component_metadata",
+        "test_v10_update_components_omitted_metadata_clears_component_metadata"
+      ],
+      "upstreamCaseCount": 84
     },
-    "conformance/core/validator.yaml": {
-      "sha256": "51755614569daed48ffe283be52a2c799576d479052939f433ee1066c272ed93",
+    "conformance/core/validator_v1_0.yaml": {
+      "sha256": "eb5ff8f9a7bf6444a31a9a4216e9b3202ded86197802a0c1a067e3a4b9cdc304",
       "generatedFile": "validator-schema.json",
-      "generatedSha256": "60ec4a851f60b8deaae6ef275a71890392626fc8956ce83d29a08a769faa9062",
+      "generatedSha256": "528d2326c87440f60040d75be4364734cfb4138a79bc3c1a69cd55e6682ea367",
       "caseCount": 1,
-      "selectedCases": ["test_validator_0_9"],
-      "upstreamCaseCount": 45
+      "selectedCases": [
+        "test_validator_1_0"
+      ],
+      "upstreamCaseCount": 50
     }
   },
   "excluded": [
     {
-      "path": "specification/v1_0/test/cases",
-      "reason": "The package targets v0.9/v0.9.1 and does not claim v1.0 protocol support."
+      "path": "conformance/core/validator_v0_8.yaml",
+      "reason": "The package targets A2UI v1.0 and does not claim v0.8 protocol support."
+    },
+    {
+      "path": "conformance/core/validator_v0_9.yaml",
+      "reason": "The package targets A2UI v1.0 and does not claim v0.9 protocol support."
     }
   ],
-  "knownFailures": [
-    {
-      "suite": "conformance/core/expressions.yaml",
-      "case": "test_expr_error_invalid_number_two_points",
-      "dependency": "@a2ui/web_core",
-      "version": "0.10.7",
-      "reason": "ExpressionParser accepts ${1.2.3} instead of raising the upstream Invalid number literal error.",
-      "handling": "The test is an expected failure only for this exact dependency version and case; v0.11 and later remain strict.",
-      "resolution": "Use @a2ui/web_core 0.11 or remove this entry when the floor parser rejects the malformed literal."
-    }
-  ]
+  "knownFailures": []
 }

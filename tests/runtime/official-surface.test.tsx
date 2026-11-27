@@ -1,5 +1,5 @@
-import { A2uiSurface as OfficialSurface, type ReactComponentImplementation } from '@a2ui/react/v0_9'
-import { MessageProcessor, type A2uiClientAction } from '@a2ui/web_core/v0_9'
+import { A2uiSurface as OfficialSurface, type ReactComponentImplementation } from '@a2ui/react'
+import { MessageProcessor, type ActionPayload } from '@a2ui/web_core'
 import { Material3Provider } from '@language-lit/material3-expressive'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -15,27 +15,27 @@ import { material3Catalog, material3ExtendedCatalog, MATERIAL_CATALOG_ID } from 
  */
 describe('material3Catalog under the official @a2ui/react surface', () => {
   it('renders Material components, binds an input and dispatches an action', async () => {
-    const actions: A2uiClientAction[] = []
+    const actions: ActionPayload[] = []
     const processor = new MessageProcessor<ReactComponentImplementation>(
       [material3Catalog],
       (action) => {
         actions.push(action)
       },
-      { version: 'v0.9.1' },
+      { version: '1.0' },
     )
     processor.processMessages([
       message.createSurface('official'),
       message.updateComponents('official', [
         { id: 'root', component: 'Column', children: ['title', 'name', 'go'] },
-        { id: 'title', component: 'Text', text: 'Hello from **A2UI**', variant: 'h2' },
-        { id: 'name', component: 'TextField', label: 'Name', value: { path: '/name' } },
+        { id: 'title', component: 'Text', text: '## Hello from **A2UI**' },
+        { id: 'name', component: 'TextField', label: 'Name', value: { '@path': '/name' } },
         {
           id: 'go',
           component: 'Button',
-          child: 'go-text',
-          action: { event: { name: 'go', context: { name: { path: '/name' } } } },
+          child: 'go_text',
+          action: { event: { name: 'go', context: { name: { '@path': '/name' } } } },
         },
-        { id: 'go-text', component: 'Text', text: 'Go' },
+        { id: 'go_text', component: 'Text', text: 'Go' },
       ]),
       message.updateDataModel('official', { name: 'Ada' }),
     ])
@@ -68,19 +68,25 @@ describe('material3Catalog under the official @a2ui/react surface', () => {
       context: { name: 'Grace' },
     })
   })
-})
 
-it('renders a bound Material extension under the official surface', async () => {
-  const processor = new MessageProcessor<ReactComponentImplementation>([material3ExtendedCatalog])
-  processor.processMessages([
-    message.createSurface('extended-official', { catalogId: MATERIAL_CATALOG_ID }),
-    message.updateDataModel('extended-official', { enabled: false }),
-    message.updateComponents('extended-official', [
-      { id: 'root', component: 'Switch', label: 'Enable alerts', value: { path: '/enabled' } },
-    ]),
-  ])
-  const surface = processor.model.surfacesMap.get('extended-official')!
-  render(<Material3Provider><OfficialSurface surface={surface} /></Material3Provider>)
-  await userEvent.click(screen.getByRole('switch', { name: 'Enable alerts' }))
-  expect(surface.dataModel.get('/enabled')).toBe(true)
+  it('renders a bound Material extension under the official surface', async () => {
+    const processor = new MessageProcessor<ReactComponentImplementation>([material3ExtendedCatalog], undefined, {
+      version: '1.0',
+    })
+    processor.processMessages([
+      message.createSurface('extended-official', { catalogId: MATERIAL_CATALOG_ID }),
+      message.updateDataModel('extended-official', { enabled: false }),
+      message.updateComponents('extended-official', [
+        { id: 'root', component: 'Switch', label: 'Enable alerts', value: { '@path': '/enabled' } },
+      ]),
+    ])
+    const surface = processor.model.surfacesMap.get('extended-official')!
+    render(
+      <Material3Provider>
+        <OfficialSurface surface={surface} />
+      </Material3Provider>,
+    )
+    await userEvent.click(screen.getByRole('switch', { name: 'Enable alerts' }))
+    expect(surface.dataModel.get('/enabled')).toBe(true)
+  })
 })

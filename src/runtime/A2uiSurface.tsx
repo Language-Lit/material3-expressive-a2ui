@@ -7,7 +7,12 @@ import {
   type ComponentPropsWithoutRef,
   type CSSProperties,
 } from 'react'
-import { ComponentContext, type ComponentModel, type SurfaceModel } from '@a2ui/web_core/v0_9'
+import {
+  ComponentContext,
+  type Catalog,
+  type ComponentModel,
+  type SurfaceModel,
+} from '@a2ui/web_core'
 import { Text } from '@language-lit/material3-expressive'
 
 import { cx } from '../internal/classNames'
@@ -19,7 +24,7 @@ export const ROOT_COMPONENT_ID = 'root'
 /** A surface whose catalog holds Material 3 implementations. */
 export type A2uiSurfaceModel = SurfaceModel<Material3ComponentImplementation>
 
-/** The theme fields the basic catalog defines for `createSurface`. */
+/** Optional surface theme fields used for host-provided attribution and accent color. */
 export interface A2uiSurfaceTheme {
   readonly primaryColor?: string
   readonly iconUrl?: string
@@ -29,11 +34,11 @@ export interface A2uiSurfaceTheme {
 interface A2uiSurfaceOwnProps {
   /** The surface to render, from a `MessageProcessor` or `useA2ui`. */
   readonly surface: A2uiSurfaceModel
-  /** The component to start from. The protocol fixes it to `root`. */
+  /** The component to start from. Defaults to `surface.rootId` (`root`). */
   readonly rootId?: string
   /**
    * Whether to show the agent's name and icon from the surface theme above
-   * the content. On by default; nothing is shown when the theme has neither.
+   * the content when present. On by default; nothing is shown when absent.
    */
   readonly attribution?: boolean
 }
@@ -77,13 +82,14 @@ function UnknownComponent({
   readonly surface: A2uiSurfaceModel
   readonly model: ComponentModel
 }) {
+  const catalogId = model.catalog?.id ?? surface.defaultCatalog?.id ?? 'unknown'
   useEffect(() => {
     void surface.dispatchError({
       code: 'UNKNOWN_COMPONENT',
-      message: `Component "${model.type}" (id "${model.id}") is not in catalog "${surface.catalog.id}".`,
+      message: `Component "${model.type}" (id "${model.id}") is not in catalog "${catalogId}".`,
       componentId: model.id,
     })
-  }, [surface, model])
+  }, [surface, model, catalogId])
   return (
     <div className="m3e-a2ui-unknown" role="note" data-a2ui-component={model.id}>
       <Text as="span" variant="bodySmall">
@@ -119,7 +125,10 @@ function ResolvedChild({
     },
     [surface, basePath],
   )
-  const implementation = surface.catalog.components.get(model.type)
+  const catalog = (model.catalog ?? surface.defaultCatalog) as
+    | Catalog<Material3ComponentImplementation>
+    | undefined
+  const implementation = catalog?.components.get(model.type)
   if (!implementation) return <UnknownComponent surface={surface} model={model} />
   const Render = implementation.render
   return <Render context={context} buildChild={buildChild} />
@@ -135,17 +144,20 @@ const DeferredChild = memo(function DeferredChild({ surface, id, basePath }: Chi
  * Renders one A2UI surface with the Material 3 catalog.
  *
  * Each component subscribes to its own model, so streamed updates re-render
- * only what changed. The frame is a plain block: the host decides where a
- * surface sits (a chat bubble, a panel, a page) and this component fills it.
+ * only what changed, and resolves its implementation from its own catalog so
+ * v1.0 mixed-catalog surfaces work without extra configuration. The frame is
+ * a plain block: the host decides where a surface sits (a chat bubble, a
+ * panel, a page) and this component fills it.
  */
 export function A2uiSurface({
   surface,
-  rootId = ROOT_COMPONENT_ID,
+  rootId,
   attribution = true,
   className,
   style,
   ...rest
 }: A2uiSurfaceProps) {
+  const effectiveRootId = rootId ?? surface.rootId ?? ROOT_COMPONENT_ID
   const theme = (surface.theme ?? {}) as A2uiSurfaceTheme
   const agentName = typeof theme.agentDisplayName === 'string' ? theme.agentDisplayName : undefined
   const iconUrl = typeof theme.iconUrl === 'string' ? theme.iconUrl : undefined
@@ -174,7 +186,7 @@ export function A2uiSurface({
           ) : null}
         </div>
       ) : null}
-      <DeferredChild surface={surface} id={rootId} basePath="/" />
+      <DeferredChild surface={surface} id={effectiveRootId} basePath="/" />
     </div>
   )
 }

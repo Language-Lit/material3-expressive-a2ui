@@ -658,6 +658,61 @@ commit `485d08a`, with registry shasum
 DOM resolves without peer-dependency overrides and imports the renderer and
 picker exports. The pushed `v0.2.1` tag points at that published commit.
 
+## T11 — A2UI v1.0 migration (`0.3.0`)
+
+Status: complete (awaiting owner npm publish & tag)
+Approved: 2026-11-27 (owner: "Yes, let's update it then. If necessary change the material3-expressive repo and the landing as well, go ahead.")
+Completed: 2026-11-27
+
+### Scope and expected files
+
+Adopt A2UI v1.0 on `@a2ui/web_core@^0.16.1` (and test compatibility against
+`@a2ui/react@^0.16.1`) for release `0.3.0`:
+
+- Upgrade runtime (`useA2ui`, `A2uiSurface`, `adapter`) to v1.0 envelopes,
+  mixed-catalog lookup, `@accessibility` `live`/`hidden` (`inert`), and
+  bidirectional RPCs (`processMessagesAsync`, `callAgentFunction`,
+  `outboundListener`).
+- Migrate all 18 basic components to stock `@a2ui/web_core/catalogs/basic/v1`
+  APIs (retiring ADR 0004 patches and `src/internal/catalogSchemas.ts`), update
+  `Text` for Markdown-only headings and `List` for v1.0, and migrate all 9
+  Material extension components to v1.0 schemas.
+- Remove the v0.9-only minimal catalog (`fixtures/minimal/`,
+  `material3MinimalCatalog`, `CapitalizeImplementation`).
+- Refresh verbatim `fixtures/catalog.json`, 43 v1.0 `fixtures/examples/`,
+  `fixtures/material/examples/01_trip-planner.json`, and pinned upstream v1.0
+  conformance vectors (`a2ui-project/a2ui@36725eee042da90c526f469f94246f96e16fdc35`).
+- Regenerate `public/a2ui/catalogs/material3/catalog.json` as a standalone
+  v1.0 catalog document round-tripped through `Catalog.fromJson(schema, '1.0')`.
+- Update playground, verifier, docs (`README.md`, `SPEC.md`, `ARCHITECTURE.md`,
+  `CONFORMANCE.md`, `CATALOG_DELIVERY.md`, `UPSTREAM_TASKS.md`), ADR 0004/0008
+  status notes, and add ADR 0009.
+
+### Acceptance checks
+
+1. `npm run verify` passes (typecheck, full test suite, build, CSS namespace
+   guard, package boundary checks, catalog reproducibility check).
+2. `npm run playground:build` passes.
+3. All 43 verbatim v1.0 basic examples, Material trip planner, 158 pinned
+   upstream v1.0 conformance vectors, and `@a2ui/react@0.16.1` surface
+   compatibility tests pass.
+4. `public/a2ui/catalogs/material3/catalog.json` round-trips cleanly through
+   `Catalog.fromJson(schema, '1.0')` with zero unresolved references.
+
+### Verification record (2026-11-27)
+
+- `npm run verify`: green (`tsc --noEmit` 0 errors; 14 test files, 306 tests
+  passing; `dist/index.js` 86.13 KB, `dist/index.d.ts` 181.90 KB,
+  `dist/styles.css` 9544 bytes; `verify:package` and `verify:catalog` pass).
+- `npm run playground:build`: green.
+- Export map remains strictly `.` and `./styles.css`, runtime dependencies
+  remain zero, and `src/` imports only `@a2ui/web_core`, `@a2ui/web_core/v1_0`,
+  and `@a2ui/web_core/catalogs/basic/v1` (no direct `zod` or `@a2ui/react`).
+- Owner actions remaining after this task: `npm publish` `0.3.0`, tag `v0.3.0`,
+  switch the design system site from the vendored tarball to `"0.3.0"`, deploy
+  the site, and open the PR on `a2ui-project/a2ui` updating the ecosystem
+  renderer listing to `v1.0`.
+
 ## Current task
 
-T10.
+T11.

@@ -1,6 +1,6 @@
-import type { A2uiMessage } from '@a2ui/web_core/v0_9'
+import type { AgentToRendererMessage } from '@a2ui/web_core/v1_0'
 
-export type ExampleCatalog = 'basic' | 'minimal' | 'material'
+export type ExampleCatalog = 'basic' | 'material'
 
 export interface Example {
   /** Deep-link key: the file name for a basic example, `<catalog>/<file>` for other catalogs. */
@@ -8,20 +8,16 @@ export interface Example {
   readonly name: string
   readonly description: string
   readonly catalog: ExampleCatalog
-  readonly messages: readonly A2uiMessage[]
+  readonly messages: readonly AgentToRendererMessage[]
 }
 
 interface ExampleModule {
   readonly name: string
   readonly description: string
-  readonly messages: A2uiMessage[]
+  readonly messages: AgentToRendererMessage[]
 }
 
 const basicModules = import.meta.glob<ExampleModule>('../fixtures/examples/*.json', {
-  eager: true,
-  import: 'default',
-})
-const minimalModules = import.meta.glob<ExampleModule>('../fixtures/minimal/examples/*.json', {
   eager: true,
   import: 'default',
 })
@@ -37,7 +33,7 @@ function collect(modules: Record<string, ExampleModule>, catalog: ExampleCatalog
       const basename = path.split('/').pop() ?? path
       return {
         file: catalog === 'basic' ? basename : `${catalog}/${basename}`,
-        name: catalog === 'basic' ? module.name : `${catalog === 'minimal' ? 'Minimal' : 'Material'} · ${module.name}`,
+        name: catalog === 'basic' ? module.name : `Material · ${module.name}`,
         description: module.description,
         catalog,
         messages: module.messages,
@@ -47,7 +43,7 @@ function collect(modules: Record<string, ExampleModule>, catalog: ExampleCatalog
 }
 
 /**
- * The v0.9.1 examples from the A2UI specification: the basic catalog's in
- * file order, then minimal examples and package-authored Material examples.
+ * The A2UI v1.0 examples from the specification: the basic catalog's in file
+ * order, followed by package-authored Material extension examples.
  */
-export const examples: readonly Example[] = [...collect(basicModules, 'basic'), ...collect(minimalModules, 'minimal'), ...collect(materialModules, 'material')]
+export const examples: readonly Example[] = [...collect(basicModules, 'basic'), ...collect(materialModules, 'material')]

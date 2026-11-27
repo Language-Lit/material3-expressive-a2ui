@@ -1,5 +1,5 @@
 import { Icon as MaterialIcon, type IconSource } from '@language-lit/material3-expressive'
-import { IconApi } from '@a2ui/web_core/v0_9/basic_catalog'
+import { IconApi } from '@a2ui/web_core/catalogs/basic/v1'
 import type { CSSProperties } from 'react'
 
 import { resolveIconGlyph } from '../../internal/icons'

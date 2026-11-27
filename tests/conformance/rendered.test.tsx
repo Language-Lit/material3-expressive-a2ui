@@ -1,15 +1,15 @@
 import { act, render, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import { MessageProcessor } from '@a2ui/web_core/v0_9'
+import { MessageProcessor } from '@a2ui/web_core'
 
 import { BASIC_CATALOG_ID, material3Catalog } from '../../src/catalog'
 import { A2uiSurface, type A2uiSurfaceModel } from '../../src/runtime/A2uiSurface'
 import type { Material3ComponentImplementation } from '../../src/runtime/adapter'
 import { wrap } from '../../fixtures/render'
 
-function processorFor(version: 'v0.9' | 'v0.9.1' = 'v0.9') {
-  return new MessageProcessor([material3Catalog], undefined, { version })
+function createProcessor() {
+  return new MessageProcessor<Material3ComponentImplementation>([material3Catalog], undefined, { version: '1.0' })
 }
 
 function createBoundTextSurface(
@@ -18,18 +18,18 @@ function createBoundTextSurface(
 ) {
   processor.processMessages([
     {
-      version: processor.version,
+      version: '1.0',
       createSurface: { surfaceId, catalogId: BASIC_CATALOG_ID },
     },
     {
-      version: processor.version,
+      version: '1.0',
       updateComponents: {
         surfaceId,
-        components: [{ id: 'root', component: 'Text', text: { path: '/label' } }],
+        components: [{ id: 'root', component: 'Text', text: { '@path': '/label' } }],
       },
-      },
+    },
     {
-      version: processor.version,
+      version: '1.0',
       updateDataModel: { surfaceId, path: '/label', value: 'before' },
     },
   ])
@@ -39,8 +39,8 @@ function createBoundTextSurface(
 }
 
 describe('upstream vectors through the rendered A2uiSurface', () => {
-  it.each(['v0.9', 'v0.9.1'] as const)('updates and deletes a bound value (%s)', (version) => {
-    const processor = processorFor(version)
+  it('updates and deletes a bound value through v1.0 null deletion', () => {
+    const processor = createProcessor()
     const surface = createBoundTextSurface(processor, 'reactive')
     const view = render(wrap(<A2uiSurface surface={surface} />))
 
@@ -49,7 +49,7 @@ describe('upstream vectors through the rendered A2uiSurface', () => {
       act(() => {
         processor.processMessages([
           {
-            version,
+            version: '1.0',
             updateDataModel: { surfaceId: 'reactive', path: '/label', value: 'after' },
           },
         ])
@@ -60,8 +60,8 @@ describe('upstream vectors through the rendered A2uiSurface', () => {
       act(() => {
         processor.processMessages([
           {
-            version,
-            updateDataModel: { surfaceId: 'reactive', path: '/label' },
+            version: '1.0',
+            updateDataModel: { surfaceId: 'reactive', path: '/label', value: null },
           },
         ])
       })
@@ -73,7 +73,7 @@ describe('upstream vectors through the rendered A2uiSurface', () => {
   })
 
   it('keeps two surfaces isolated while both render through the catalog', () => {
-    const processor = processorFor('v0.9.1')
+    const processor = createProcessor()
     const first = createBoundTextSurface(processor, 'first')
     const second = createBoundTextSurface(processor, 'second')
     const view = render(
@@ -96,7 +96,7 @@ describe('upstream vectors through the rendered A2uiSurface', () => {
       act(() => {
         processor.processMessages([
           {
-            version: 'v0.9.1',
+            version: '1.0',
             updateDataModel: { surfaceId: 'first', path: '/label', value: 'only first' },
           },
         ])

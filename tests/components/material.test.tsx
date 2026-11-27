@@ -1,7 +1,7 @@
 import { act, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import type { A2uiMessage } from '@a2ui/web_core/v0_9'
+import type { AgentToRendererMessage } from '@a2ui/web_core/v1_0'
 import { message } from '../../fixtures/messages'
 import { renderSurface } from '../../fixtures/render'
 import example from '../../fixtures/material/examples/01_trip-planner.json'
@@ -22,7 +22,7 @@ function render(components: Record<string, unknown>[], data: unknown = {}) {
 
 describe('Material extension through the real protocol', () => {
   it('renders the complete example and resolves templated carousel children', () => {
-    const { errors } = renderSurface(example.messages as A2uiMessage[], { strict: true })
+    const { errors } = renderSurface(example.messages as AgentToRendererMessage[], { strict: true })
     expect(screen.getByRole('switch', { name: 'Trip notifications' })).toBeDefined()
     expect(screen.getByRole('combobox', { name: 'Travel style' })).toBeDefined()
     expect(screen.getAllByRole('progressbar')).toHaveLength(2)
@@ -40,21 +40,21 @@ describe('Material extension through the real protocol', () => {
           component: 'Column',
           children: ['switch', 'select', 'chip', 'segments', 'go'],
         },
-        { id: 'switch', component: 'Switch', label: 'Notifications', value: { path: '/on' } },
-        { id: 'select', component: 'Select', label: 'Plan', options, value: { path: '/plan' } },
+        { id: 'switch', component: 'Switch', label: 'Notifications', value: { '@path': '/on' } },
+        { id: 'select', component: 'Select', label: 'Plan', options, value: { '@path': '/plan' } },
         {
           id: 'chip',
           component: 'Chip',
           label: 'Save',
-          value: { path: '/saved' },
-          action: { event: { name: 'save', context: { saved: { path: '/saved' } } } },
+          value: { '@path': '/saved' },
+          action: { event: { name: 'save', context: { saved: { '@path': '/saved' } } } },
         },
         {
           id: 'segments',
           component: 'SegmentedButtons',
           label: 'Length',
           options,
-          value: { path: '/length' },
+          value: { '@path': '/length' },
         },
         {
           id: 'go',
@@ -65,9 +65,9 @@ describe('Material extension through the real protocol', () => {
             event: {
               name: 'go',
               context: {
-                on: { path: '/on' },
-                plan: { path: '/plan' },
-                length: { path: '/length' },
+                on: { '@path': '/on' },
+                plan: { '@path': '/plan' },
+                length: { '@path': '/length' },
               },
             },
           },
@@ -101,15 +101,15 @@ describe('Material extension through the real protocol', () => {
     expect(errors).toEqual([])
   })
 
-  it('resolves bindings in nested option labels after catalog reference annotation', () => {
+  it('resolves bindings in nested option labels', () => {
     const { errors } = render(
       [
         {
           id: 'root',
           component: 'Select',
-          label: { path: '/fieldLabel' },
+          label: { '@path': '/fieldLabel' },
           value: 'a',
-          options: [{ label: { path: '/optionLabel' }, value: 'a' }],
+          options: [{ label: { '@path': '/optionLabel' }, value: 'a' }],
         },
       ],
       { fieldLabel: 'Destination', optionLabel: 'Kyoto' },
@@ -139,8 +139,8 @@ describe('Material extension through the real protocol', () => {
     expect(errors).toEqual([])
   })
 
-  it('gates actions with checks and displays associated input errors after interaction', async () => {
-    const checks = [{ condition: { path: '/valid' }, message: 'Please correct this' }]
+  it('gates actions with @checks and displays associated input errors after interaction', async () => {
+    const checks = [{ condition: { '@path': '/valid' }, message: 'Please correct this' }]
     const { processor, actions, errors } = render(
       [
         {
@@ -148,36 +148,36 @@ describe('Material extension through the real protocol', () => {
           component: 'Column',
           children: ['switch', 'select', 'segments', 'go', 'chip', 'row'],
         },
-        { id: 'switch', component: 'Switch', label: 'Confirm', value: false, checks },
-        { id: 'select', component: 'Select', label: 'Plan', options, value: 'a', checks },
+        { id: 'switch', component: 'Switch', label: 'Confirm', value: false, '@checks': checks },
+        { id: 'select', component: 'Select', label: 'Plan', options, value: 'a', '@checks': checks },
         {
           id: 'segments',
           component: 'SegmentedButtons',
           label: 'Length',
           options,
           value: ['a'],
-          checks,
+          '@checks': checks,
         },
         {
           id: 'go',
           component: 'IconButton',
           label: 'Submit',
           icon: 'check',
-          checks,
+          '@checks': checks,
           action: { event: { name: 'submit' } },
         },
         {
           id: 'chip',
           component: 'Chip',
           label: 'Assist',
-          checks,
+          '@checks': checks,
           action: { event: { name: 'assist' } },
         },
         {
           id: 'row',
           component: 'ListItem',
           headline: 'Continue',
-          checks,
+          '@checks': checks,
           action: { event: { name: 'continue' } },
         },
       ],
@@ -206,7 +206,7 @@ describe('Material extension through the real protocol', () => {
 
   it('resolves progress bindings and moves between determinate and indeterminate states', () => {
     const { processor, errors } = render(
-      [{ id: 'root', component: 'Progress', label: 'Upload', value: { path: '/value' }, max: 10 }],
+      [{ id: 'root', component: 'Progress', label: 'Upload', value: { '@path': '/value' }, max: 10 }],
       { value: 4 },
     )
     expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe('4')
@@ -214,7 +214,7 @@ describe('Material extension through the real protocol', () => {
     expect(screen.getByRole('progressbar').getAttribute('aria-valuenow')).toBe('10')
     act(() =>
       processor.processMessages([
-        message.updateDataModel(id, { value: null }),
+        message.updateDataModel(id, null, '/value'),
         message.updateComponents(id, [
           { id: 'root', component: 'Progress', label: 'Upload', circular: true },
         ]),
@@ -281,7 +281,7 @@ describe('Material extension through the real protocol', () => {
     const { processor, errors } = render(
       [
         { id: 'root', component: 'Carousel', children: { componentId: 'item', path: '/items' } },
-        { id: 'item', component: 'Text', text: { path: 'name' }, variant: 'h3' },
+        { id: 'item', component: 'Text', text: { '@call': 'formatString', args: { value: '### ${name}' } } },
       ],
       { items: [{ name: 'First' }, { name: 'Second' }] },
     )
@@ -298,8 +298,8 @@ describe('Material extension through the real protocol', () => {
         {
           id: 'root',
           component: 'Chip',
-          label: { call: 'formatString', args: { value: 'Save ${/name}' } },
-          value: { path: '/saved' },
+          label: { '@call': 'formatString', args: { value: 'Save ${/name}' } },
+          value: { '@path': '/saved' },
         },
       ],
       { name: 'trip' },
@@ -335,7 +335,7 @@ describe('Material extension through the real protocol', () => {
     const { processor, container, actions, errors } = render(
       [
         { id: 'root', component: 'Column', children: controls.map((control) => control.id) },
-        ...controls.map((control) => ({ ...control, disabled: { path: '/disabled' } })),
+        ...controls.map((control) => ({ ...control, disabled: { '@path': '/disabled' } })),
       ],
       { disabled: true },
     )

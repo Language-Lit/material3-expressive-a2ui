@@ -6,6 +6,10 @@
   color: var(--m3e-sys-color-on-surface);
 }
 
+.m3e-a2ui-a11y {
+  display: contents;
+}
+
 .m3e-a2ui-surface__agent {
   display: flex;
   align-items: center;

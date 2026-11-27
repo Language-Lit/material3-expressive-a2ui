@@ -1,8 +1,8 @@
 # Material 3 Expressive A2UI Specification
 
-Status: public release; v0.9.1 renderer
-Specification date: 2026-09-11
-Current version: `0.2.1`
+Status: public release; A2UI v1.0 renderer
+Specification date: 2026-11-27
+Current version: `0.3.0`
 
 This document defines the product, boundary, architecture, and quality bar for
 `@language-lit/material3-expressive-a2ui`.
@@ -15,27 +15,25 @@ describe normative requirements.
 A2UI is Google's protocol for agent-driven user interfaces: an agent
 describes a UI as a tree of catalog components with data bindings, streams it
 as JSONL messages, and receives the user's actions back. The agent never sends
-code; the client renders the tree with components it already trusts. This
-package is such a client: it renders the A2UI v0.9.1 basic catalog in
-Material 3 Expressive.
+code; the renderer draws the tree with components it already trusts. This
+package is such a renderer: it renders the A2UI v1.0 basic catalog and a
+Material extension catalog in Material 3 Expressive.
 
 It is the rendering half only. Message processing, the data model, data
-binding, function evaluation and action dispatch belong to `@a2ui/web_core`
-and MUST NOT be reimplemented here. Transport — how messages reach the client
-and how actions go back — belongs to the host application and its agent
-framework (A2A, a plain fetch, a WebSocket) and is out of scope.
+binding, function evaluation, RPC correlation, and action dispatch belong to
+`@a2ui/web_core` and MUST NOT be reimplemented here. Transport — how messages
+reach the renderer and how outbound envelopes go back — belongs to the host
+application and its agent framework (A2A, a plain fetch, a WebSocket) and is
+out of scope.
 
 ### 1.1 Scope
 
-In scope: a Material 3 implementation of every component in the basic catalog
-(`https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json`), a
-`Catalog` that carries them together with the specification's functions, the
-minimal catalog
-(`https://a2ui.org/specification/v0_9/catalogs/minimal/catalog.json`) built
-from the same implementations plus its `capitalize` function, a package-owned
-Material extension catalog (ADR 0007), a surface
-component that renders a `SurfaceModel`, and a hook that owns a
-`MessageProcessor` for a component's lifetime.
+In scope: a Material 3 implementation of every component in the v1.0 basic
+catalog (`https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json`), a
+`Catalog` that carries them together with the specification's functions, a
+package-owned Material extension catalog (ADR 0007), a surface component that
+renders a `SurfaceModel` (including mixed-catalog surfaces), and a hook that
+owns a `MessageProcessor` for a component's lifetime.
 
 Out of scope: transport, agent orchestration, prompt construction,
 persistence, authentication, seed-colour theme generation, a Markdown
@@ -73,8 +71,8 @@ CI to continuously verify *the absence of runtime dependencies and of any peer
 beyond React and React DOM*. `@a2ui/web_core` depends on `zod`. Adding an A2UI
 surface to that package would fail its own CI by construction.
 
-See [ADR 0001](adr/0001-separate-package-on-web-core.md), which also records
-why the package builds on `@a2ui/web_core` rather than on `@a2ui/react`.
+See [ADR 0001](adr/0001-separate-package-on-web-core.md) and
+[ADR 0009](adr/0009-adopt-a2ui-v1.md).
 
 ## 2. Public surface
 
@@ -91,12 +89,8 @@ ADR.
 - **`.`** — the React surface. Carries `'use client'`. Exports:
   - `useA2ui`, `A2uiSurface`, `ROOT_COMPONENT_ID` and their types;
   - `material3Catalog`, `createMaterial3Catalog`, `material3Components`,
-    `BASIC_CATALOG_ID`;
-  - `material3MinimalCatalog`, `material3MinimalComponents`,
-    `MINIMAL_CATALOG_ID`, and `material3Catalogs`, the default
-    registration order;
-  - `CapitalizeImplementation` and `OpenUrlImplementation`, the package's
-    own function implementations;
+    `BASIC_CATALOG_ID`, and `material3Catalogs`, the default registration order;
+  - `OpenUrlImplementation`, the package's user-activation-guarded function;
   - `MATERIAL_CATALOG_ID`, `material3ExtendedCatalog`,
     `material3ExtendedComponents` (the nine additional implementations);
   - the eighteen basic and nine Material `<Name>Implementation` objects;
@@ -115,37 +109,32 @@ ADR.
 The package MUST ship **zero runtime dependencies**. `@a2ui/web_core`,
 `@language-lit/material3-expressive`, `react`, and `react-dom` are peers.
 
-Only the `@a2ui/web_core/v0_9` and `@a2ui/web_core/v0_9/basic_catalog` entries
-may be imported. `zod` MUST NOT be imported directly; it stays behind
-web_core's API. CI verifies both by inspecting sources and the built chunk.
+Only the `@a2ui/web_core`, `@a2ui/web_core/v1_0`, and
+`@a2ui/web_core/catalogs/basic/v1` entries may be imported. `zod` MUST NOT be
+imported directly; it stays behind `web_core`'s API. CI verifies both by
+inspecting sources and the built chunk.
 
 ### 2.2 Protocol version
 
-The package targets A2UI **v0.9.1** through web_core `^0.10.7 || ^0.11.0`.
-The suite MUST pass at the range's floor as well as at the version the
-lockfile pins, so a consumer on either minor gets the same behaviour.
-`useA2ui` defaults the processor to `v0.9.1` and MAY be told `v0.9`. The
-processor registers the basic, minimal and Material extension catalogs under
-their own ids by default, so an agent that announces any of them in
-`createSurface` is accepted without configuration.
+The package targets **A2UI v1.0** through `@a2ui/web_core` `^0.16.1`. `useA2ui`
+defaults the processor to `'1.0'` and registers the v1.0 basic catalog and
+Material extension catalog under their own ids by default, so an agent may
+announce either or mix both on a single surface (including surfaces created
+without a default `catalogId`). A2UI v1.0 does not publish a minimal catalog.
+Earlier protocol versions (v0.8, v0.9, v0.9.1) are served by the `0.2.x` line
+of this package.
 
 ## 3. Architecture
 
 ### 3.1 web_core owns the protocol
 
 `MessageProcessor` parses and validates every message, maintains the surface
-group, the per-surface component and data models, evaluates `{path}` and
-`{call}` bindings, applies `checks`, and dispatches actions. This package
-reads those models and never mutates them except through web_core's own
-setters (a bound input calls the `setValue` the binder resolved for it).
-
-Consequently, an invalid message is web_core's error, reported through
-`useA2ui`'s `onError` (or thrown when no handler is given), and a function
-whose argument is missing reports `EXPRESSION_ERROR` through the surface's
-`onError`. The second case is routine while a surface is still arriving —
-the specification's own examples send `updateComponents` before
-`updateDataModel` — and consumers MUST treat it as a diagnostic, not a
-failure.
+group, the per-surface component and data models, evaluates `{ "@path" }` and
+`{ "@call", "args" }` bindings, applies `@checks`, executes bidirectional RPC
+messages (`callRendererFunction` / `callAgentFunction`), and dispatches
+actions. This package reads those models and never mutates them except through
+`web_core`'s own setters (a bound input calls the `setValue` the binder
+resolved for it).
 
 ### 3.2 Component implementations are render-only
 
@@ -153,72 +142,62 @@ Every catalog component is `{ name, schema, render }`, produced by
 `createMaterial3Component(api, Render)`. `Render` receives the resolved props,
 the `ComponentContext`, and `buildChild`, and MUST NOT reach the processor,
 the surface group, or transport. `createMaterial3Component` owns the
-subscription to web_core's `GenericBinder` through `useSyncExternalStore`, so
+subscription to `web_core`'s `GenericBinder` through `useSyncExternalStore`, so
 a component re-renders exactly when a value it binds changes.
 
-This is the same contract that Google's `@a2ui/react` surface and
-CopilotKit's A2UI renderer consume, so `material3Catalog` MUST remain usable
-from either without this package depending on them. The suite MUST include a
-test that renders the catalog under the installed `@a2ui/react` surface;
-that package is a development dependency only and MUST NOT be imported from
-`src/`. See [ADR 0002](adr/0002-render-only-implementations-and-own-surface.md).
+When `@accessibility` sets `live` or `hidden`, the adapter wraps the rendered
+subtree in an `AccessibilityRegion` (`<div className="m3e-a2ui-a11y">`) with
+`aria-live`, `aria-hidden`, and the `inert` attribute synchronized to `hidden`.
+
+This is the same render-only contract that Google's `@a2ui/react` surface and
+CopilotKit's A2UI renderer consume, so `material3Catalog` and
+`material3ExtendedCatalog` MUST remain usable from either without this package
+depending on them. The suite MUST include a test that renders both catalogs
+under the installed `@a2ui/react` surface; that package is a development
+dependency only and MUST NOT be imported from `src/`. See
+[ADR 0002](adr/0002-render-only-implementations-and-own-surface.md).
 
 ### 3.3 The surface
 
-`A2uiSurface` renders one `SurfaceModel` from its root (`root` by default).
-It MUST:
+`A2uiSurface` renders one `SurfaceModel` from its root (`surface.rootId ?? 'root'`
+by default). It MUST:
 
 - subscribe per component, so an `updateComponents` message re-renders only
   the components it touched;
+- resolve each component's catalog from `model.catalog ?? surface.defaultCatalog`,
+  enabling mixed-catalog surfaces (including surfaces created without a default
+  `catalogId`);
 - render a placeholder for a child the tree names before the agent has sent
   it, and replace it when the component arrives;
 - render an "Unsupported component" notice for a type the catalog lacks and
-  report `UNKNOWN_COMPONENT` through the surface's `onError`;
-- render the theme's `agentDisplayName` and `iconUrl` as attribution above
-  the root unless `attribution` is `false`, and expose `primaryColor` as the
-  `--m3e-a2ui-agent-color` custom property on the surface element.
+  report `UNKNOWN_COMPONENT` through the surface's `onError`.
 
 ### 3.4 The hook
 
 `useA2ui(options)` creates one `MessageProcessor` per mounted component with
-the given catalogs (default: `material3Catalogs`, the basic catalog followed
-by the minimal and Material extension catalogs), exposes live surfaces as a
-tear-free snapshot, forwards actions to `onAction`, forwards processor and
-surface errors to `onError`, and returns `processMessages`,
-`getClientCapabilities`, `getClientDataModel`, and `clear`. It MUST delete
-every surface on unmount so a `StrictMode` remount starts clean. The
-returned functions MUST be referentially stable across renders; the returned
-object is not, because it carries the current surfaces. `processMessages`
-MUST NOT mutate the messages it is given: web_core writes bound input into
-`updateDataModel` values by reference, so the hook copies its input first.
+the given catalogs (default: `material3Catalogs`, the v1.0 basic catalog
+followed by the Material extension catalog), exposes live surfaces as a
+tear-free snapshot, forwards actions to `onAction`, forwards outbound RPC or
+unified envelopes to `outboundListener`, forwards processor and surface errors
+to `onError`, and returns `processMessages`, `processMessagesAsync`,
+`callAgentFunction`, `getRendererCapabilities`, `getRendererDataModel`,
+`getClientCapabilities`, `getClientDataModel`, and `clear`. It MUST clear
+every surface on unmount so a `StrictMode` remount starts clean. The returned
+functions MUST be referentially stable across renders. `processMessages` and
+`processMessagesAsync` MUST NOT mutate the messages they are given and MUST
+validate envelopes against `AgentToRendererMessageSchema` before handing them
+to `web_core`.
 
 ### 3.5 Catalog coverage
 
 `material3Catalog` MUST implement every component the specification's
-`catalog.json` lists, and CI MUST fail when a component is missing:
+v1.0 `catalog.json` lists, and CI MUST fail when a component is missing:
 `scripts/verify-package.mjs` reads `fixtures/catalog.json` and checks that
-each name has an implementation registered. The catalog MUST carry the
-specification's functions (`BASIC_FUNCTIONS`, or a locale-bound copy when
-`createMaterial3Catalog({ locale })` is used).
-
-`material3MinimalCatalog` MUST implement exactly the components and the
-function `fixtures/minimal/catalog.json` lists, reusing the basic
-implementations, and the same script checks it. `capitalize` upper-cases
-the first character and lower-cases the rest, the semantics of Python's
-`str.capitalize`, and returns an empty string for a missing value so the
-specification's own example renders without an expression error before the
-user has typed.
-
-The basic implementations MUST also accept the three optional properties the
-v1.0 candidate catalog adds — `posterUrl` on `Video`, `placeholder` on
-`TextField`, `steps` on `Slider` — with v1.0's descriptions and semantics,
-and MUST advertise them in the inline catalog
-([ADR 0004](adr/0004-forward-compatible-properties.md)). No other property
-beyond web_core's own basic component schemas MAY be added to the basic
-implementations, and a test MUST
-compare the inline schemas against web_core's to enforce that. The v1.0
-protocol (new components, `live`, `hidden`, message renames) is out of
-scope until web_core ships an entry for it.
+each name has an implementation registered. Every basic implementation uses
+`web_core`'s stock `@a2ui/web_core/catalogs/basic/v1` API schema verbatim. The
+catalog MUST carry the specification's functions (`BASIC_FUNCTIONS`, or a
+locale-bound copy when `createMaterial3Catalog({ locale })` is used) with
+`openUrl` replaced by the package's user-activation-guarded wrapper.
 
 ### 3.6 Material extension catalog
 
@@ -227,26 +206,21 @@ basic functions, including guarded `openUrl`, and add exactly `Switch`,
 `Select`, `IconButton`, `Chip`, `ListItem`, `Progress`, `Carousel`,
 `SegmentedButtons` and `Tooltip` under `MATERIAL_CATALOG_ID`:
 `https://m3e.language-lit.com/a2ui/catalogs/material3/catalog.json`.
-The basic and minimal catalogs MUST NOT gain these components.
+The basic catalog MUST NOT gain these components.
 
-The extension is registered third by default. Its schema MUST be advertised
-through `getClientCapabilities({ includeInlineCatalogs: true })`; this
-package runtime does not fetch the catalog URL. The generator derives the
-standalone document from the actual catalog, preserves canonical reference
-metadata, validates its local pointers, and writes
-`public/a2ui/catalogs/material3/catalog.json` for the separately owned
-documentation-site deployment. Consumers SHOULD use the inline schema until
-that deployment is available. Schemas MUST be composed from web_core's public
-schemas, preserving canonical reference metadata.
-The property contract and deliberately limited peer component modes are
-recorded in [ADR 0007](adr/0007-material-extension-catalog.md); canonical
-schema-reference preservation is recorded in
-[ADR 0008](adr/0008-canonical-schema-reference-metadata.md).
+The extension is registered second by default. Its v1.0 schema MUST be
+advertised through `getRendererCapabilities({ includeInlineCatalogs: true })`;
+this package runtime does not fetch the catalog URL. The generator derives the
+standalone v1.0 catalog document (`protocolVersion: "1.0"`, object-map
+`functions`, `$defs`) from the actual catalog, rebases `common_types.json#` to
+`https://a2ui.org/specification/v1_0/common_types.json#`, validates every local
+JSON Pointer, round-trips through `Catalog.fromJson(schema, '1.0')`, and writes
+`public/a2ui/catalogs/material3/catalog.json`.
 
-Inputs use web_core's generated setters for bound values and remain locally
+Inputs use `web_core`'s generated setters for bound values and remain locally
 editable for literals. Switch, Select and SegmentedButtons expose failed
-checks after interaction. IconButton, Chip and actionable ListItem are
-disabled when checks fail. All six accept a dynamic `disabled` property.
+`@checks` after interaction. IconButton, Chip and actionable ListItem are
+disabled when `@checks` fail. All six accept a dynamic `disabled` property.
 Tooltip MUST attach to the native control in its child, including when it
 arrives later; it MUST NOT add focus or activation semantics to a wrapper.
 
@@ -264,6 +238,10 @@ for `http`, `https`, `mailto`, and `tel`, and open in a new tab with
 column headers inside a horizontal scroller; images and raw HTML are not
 rendered.
 
+In v1.0, `Text.variant` is `'body' | 'caption'`. Headings are authored with
+Markdown `#`–`######` and render as semantic `h1`–`h6` elements in Material
+headline/title type roles.
+
 ### 4.2 Icons
 
 Catalog icon names and the Material Symbols names the specification's
@@ -277,46 +255,36 @@ that font.
 `DateTimeInput` MUST render the design system's public `DatePicker` for
 date-only input, `TimePicker` for time-only input, and `DateTimePicker` for
 combined input whenever those exports exist. It uses modal presentation,
-maps protocol bounds to picker bounds, shows failed checks after touch through
-the picker's error and supporting-text API, and forwards the accessibility
-description to the field.
+maps protocol bounds to picker bounds, shows failed `@checks` after touch
+through the picker's error and supporting-text API, and forwards the
+accessibility description to the field.
 
-The declared `^1.2.0` peer floor has no picker exports. Under that floor only,
-the component renders `<input type="date|time|datetime-local">` styled with
-the outlined text field's tokens. The verifier allowlists that compatibility
-path in this file only. Values remain ISO 8601 in both paths. A value with an
-explicit offset is shown in the user's zone and sent back as a UTC instant;
-one without an offset is taken as written. An incomplete or cleared combined
-draft MUST clear the bound value without inventing a missing part. Its next
-complete local value MUST retain the last authoritative value's instant or
-civil representation; a distinct external model update replaces that
-preference.
+Under the declared `^1.2.0` peer floor, the component renders
+`<input type="date|time|datetime-local">` styled with the outlined text field's
+tokens. Values remain ISO 8601 in both paths.
 
 ### 4.4 Layout
 
 `Row` and `Column` are flex containers. `justify` and `align` map to the
-catalog's values with `start`/`stretch` defaults; `weight` becomes `flex`. An
+catalog's values with `start`/`stretch` defaults; `weight` becomes `flex`.
+`List` renders `<div role="list">` with `<div role="listitem">` children. An
 image inside a stretch-aligned container keeps its intrinsic size (capped at
 the container's width) rather than being scaled; only the `header` variant
 spans the container.
 
 ### 4.5 Validation
 
-A component whose `checks` fail exposes `isValid` and `validationErrors`
-through the binder. Inputs show the messages after the user has touched them;
-a `Button` with failing checks is disabled.
+A component whose `@checks` fail exposes `isValid`, `validationErrors`, and
+`validationResults` through the binder. Inputs show the messages after the
+user has touched them; a `Button` with failing checks is disabled.
 
 ### 4.6 User-initiated functions
 
-`openUrl` MUST run only inside the execution scope of an action a component
-dispatched, and, where the browser exposes `navigator.userActivation`, only
-while that activation is live. A call evaluated anywhere else — while
-rendering, inside an expression, on a data-model update, or from a value
-setter — MUST NOT open anything and MUST be reported on the surface as an
-`EXPRESSION_ERROR` naming `openUrl`. The adapter MUST enter the scope for
-every action closure it hands to a render function and MUST NOT enter it
-for generated setters. Every catalog `createMaterial3Catalog` builds
-without a caller-supplied `functions` list MUST carry this implementation
+`openUrl` MUST declare `requiresUserActivation: true` and run only inside the
+execution scope of an action a component dispatched, and, where the browser
+exposes `navigator.userActivation`, only while that activation is live. A call
+evaluated anywhere else MUST NOT open anything and MUST be reported on the
+surface as an `EXPRESSION_ERROR` naming `openUrl`
 ([ADR 0005](adr/0005-user-initiated-open-url.md)).
 
 ## 5. Accessibility
@@ -325,12 +293,12 @@ The design system's components carry native semantics; this package MUST NOT
 add `role`, `tabIndex`, or synthesised activation on top of them. It owns only
 what the platform cannot infer.
 
-- `accessibility.label` becomes the accessible name of the element it
-  describes: `aria-label` on containers and text, the `label` of a
-  non-decorative icon, the name of a control.
-- `Text` heading variants render real `h1`–`h5` elements; Markdown headings
-  inside a `body` text start at `h2` so they never outrank the component's own
-  headings.
+- `@accessibility.label` becomes the accessible name of the element it
+  describes; `@accessibility.description` maps to `aria-description`.
+- `@accessibility.live` renders `aria-live` (`polite` / `assertive`) on the
+  adapter's `AccessibilityRegion`; `@accessibility.hidden` sets both
+  `aria-hidden` and the DOM `inert` property on that region.
+- Markdown `#`–`######` headings render real `h1`–`h6` elements.
 - `ChoicePicker` is a `radiogroup` when mutually exclusive and a labelled
   `group` otherwise; radios share a name scoped to the surface and component.
 - `Tabs` and `Modal` use the design system's `Tabs` and `Dialog`, which own
@@ -345,38 +313,22 @@ CI MUST verify:
 1. `tsc --noEmit` over `src`, `tests`, `fixtures`, and `playground`, with
    `strict` and `noUncheckedIndexedAccess`.
 2. The unit suite, which MUST run a real `MessageProcessor` over the
-   specification's own example streams (`fixtures/examples/`, copied
-   verbatim) and MUST render every one of them without an unsupported
-   component or a surface error — never a hand-rolled processor mock.
+   specification's own 43 v1.0 example streams (`fixtures/examples/`, copied
+   verbatim) and pinned upstream v1.0 conformance vectors (`fixtures/conformance/`),
+   rendering every example without an unsupported component or surface error.
 3. The build, including the CSS namespace guard.
 4. The exact public export map, the absence of runtime dependencies, the
-   `'use client'` directive, the web_core import allowlist, the absence of a
-   direct `zod` import, catalog coverage against `fixtures/catalog.json`, the
-   native-control allowlist, and the token-only CSS rule.
-5. The generated Material catalog document is reproducible, has resolvable
-   references, and round-trips through web_core's public catalog loader.
-
-Tests MUST cover, at minimum: the catalog's component set and icon enum
-against `fixtures/catalog.json`; the client capabilities object; two-way
-binding of an input into the data model; action context; `checks` gating a
-button; function calls; a late-arriving child replacing its placeholder; the
-unknown-component report; surface tracking through `useA2ui`; the catalog
-rendering under the official `@a2ui/react` surface; and correct behaviour
-under `StrictMode`.
-
-Visual and interactive behaviour is invisible to jsdom, so the playground
-(`npm run playground`) MUST run the same components against the same example
-streams with no backend, and SHOULD be checked in both color modes before
-release.
+   `'use client'` directive, the v1.0 `web_core` import allowlist, the absence
+   of a direct `zod` import, catalog coverage against `fixtures/catalog.json`,
+   the native-control allowlist, and the token-only CSS rule.
+5. The generated v1.0 Material catalog document is reproducible, has resolvable
+   references, and round-trips through `Catalog.fromJson(schema, '1.0')`.
 
 ## 7. Deliberate deviations from the design system's repository conventions
 
-- **Component types live in `<Name>.tsx`, not `<Name>.types.ts`.** The design
-  system splits them because its components carry large discriminated prop
-  unions consumed by its documentation pipeline. These components' props are
-  inferred from the catalog schema; a second file per component would be
-  ceremony.
-- **No `component-inventory.json`.** That file backs the design system's
-  conformance claim against the Material specification. This package
-  implements no Material component; it composes them. Its conformance claim
-  is against the A2UI catalog and is checked by `scripts/verify-package.mjs`.
+- **Component types live in `<Name>.tsx`, not `<Name>.types.ts`.** Component
+  props are inferred from the catalog schema; a second file per component
+  would be ceremony.
+- **No `component-inventory.json`.** This package implements no Material
+  component; it composes them. Its conformance claim is against the A2UI v1.0
+  catalog and is checked by `scripts/verify-package.mjs`.

@@ -1,5 +1,5 @@
 import { Button as MaterialButton, type ButtonVariant } from '@language-lit/material3-expressive'
-import { ButtonApi } from '@a2ui/web_core/v0_9/basic_catalog'
+import { ButtonApi } from '@a2ui/web_core/catalogs/basic/v1'
 
 import { isInvalid } from '../../internal/checks'
 import { asText, weightStyle } from '../../internal/layout'

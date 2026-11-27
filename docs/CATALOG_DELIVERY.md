@@ -1,17 +1,18 @@
 # Material catalog delivery
 
-The Material extension catalog is generated from the actual
+The v1.0 Material extension catalog is generated from the actual
 `material3ExtendedCatalog` through
-`MessageProcessor.getClientCapabilities({ includeInlineCatalogs: true })`.
-The generator preserves the inline component fragments, function-array order,
-and theme metadata. It sorts object keys for reproducible output and rebases
-protocol references from `common_types.json` to the public A2UI v0.9 URL.
+`MessageProcessor.getRendererCapabilities({ versions: ['1.0'], includeInlineCatalogs: true })`.
+The generator preserves the v1.0 catalog document shape (`$schema`, `$id`,
+`protocolVersion: "1.0"`, `catalogId`, `title`, `description`, `components`,
+object-map `functions`, and `$defs`), sorts object keys for reproducible
+output, and rebases relative protocol references from `common_types.json#` to
+`https://a2ui.org/specification/v1_0/common_types.json#`.
 
-Package-owned component schemas retain canonical `REF:` metadata on dynamic
-fields. This matters before hosting: it makes the inline capabilities consumed
-directly by an agent accurate and prevents zod schema de-duplication from
-creating pointers into a subtree that web_core later replaces with an external
-reference. See [ADR 0008](adr/0008-canonical-schema-reference-metadata.md).
+Basic component schemas come verbatim from `@a2ui/web_core/catalogs/basic/v1`
+(which carries canonical `spec()` reference metadata natively in `web_core`
+`0.16.1`), and package-owned Material schemas retain canonical `REF:` metadata
+on all dynamic, child, and action fields.
 
 Generate the checked-in artifact with:
 
@@ -20,8 +21,9 @@ npm run catalog:generate
 ```
 
 The command builds the package, derives the catalog from the built public API,
-validates every local JSON Pointer, round-trips the result through web_core's
-public `Catalog.fromSchema` loader, and writes:
+validates every local JSON Pointer (`#/$defs/Weight`, `#/components/*`,
+`#/functions/*`), round-trips the result through `web_core`'s public
+`Catalog.fromJson(schema, '1.0')` loader, and writes:
 
 ```text
 public/a2ui/catalogs/material3/catalog.json
@@ -39,15 +41,6 @@ directory, so a production build stages the artifact at
 https://m3e.language-lit.com/a2ui/catalogs/material3/catalog.json
 ```
 
-The file is a hosted catalog document, with the same `$schema`, `$id`, title,
-and description metadata as the A2UI specification's hosted catalogs. Those
-catalog-document fields are not part of the strict `InlineCatalog` object sent
-inside client capabilities; callers should use
-`getClientCapabilities({ includeInlineCatalogs: true })` for that payload.
-
 The artifact is hosting output rather than a package export or runtime
-dependency. Deployment of the documentation site remains owned by that site's
-release process.
-
-This is the v0.9.1 Material extension catalog. It does not advertise A2UI v1.0
-message processing; adopting v1.0 still requires a public web_core v1 entry.
+dependency. Publishing the static route is owned by the documentation site in
+`material3-expressive` (synced via `npm run generate:site-a2ui-catalog`).

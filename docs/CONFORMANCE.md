@@ -1,9 +1,9 @@
 # Upstream conformance
 
-This package tracks the A2UI core conformance vectors that apply to its
-`@a2ui/web_core/v0_9` dependency. The fixtures are pinned to
-`a2ui-project/a2ui@1c45c809b655878d06e3afc6dda22100afecc0a4`; the source and
-generated SHA-256 values are in
+This package tracks the A2UI v1.0 core conformance vectors that apply to its
+`@a2ui/web_core` dependency (`^0.16.1`). The fixtures are pinned to
+`a2ui-project/a2ui@36725eee042da90c526f469f94246f96e16fdc35`; the source and
+generated SHA-256 digests are in
 [`fixtures/conformance/manifest.json`](../fixtures/conformance/manifest.json).
 
 The checked-in JSON is generated from upstream YAML by
@@ -16,15 +16,15 @@ covered by [`fixtures/conformance/LICENSE`](../fixtures/conformance/LICENSE).
 
 | Upstream suite | Cases | How this package exercises it |
 | --- | ---: | --- |
-| `core/data_model.yaml` | 37 | Each case creates a real MessageProcessor surface, sends its initial data through `updateDataModel`, then applies the case's public `SurfaceModel.dataModel` operations and subscriptions. |
-| `core/expressions.yaml` | 31 | Direct `ExpressionParser` coverage through the public `v0_9` entry. Adjacent literal output is joined and empty literals removed using the upstream harness rule. |
-| `core/message_processor.yaml` | 2 | Exact upstream messages and expectations through a Material catalog, replayed under both `v0.9` and `v0.9.1`. |
-| `core/validator.yaml` | 1 selected case | The valid v0.9 envelope step from `test_validator_0_9` is validated with public `A2uiMessageSchema` and then replayed through MessageProcessor under both versions; its malformed steps are validated as rejected schema inputs. |
+| `core/data_model.yaml` | 52 | Each case creates a real v1.0 `MessageProcessor` surface, seeds its initial `dataModel`, then applies the case's `SurfaceModel.dataModel` operations (`get`, `set`, `delete`, `dispose`, `mutate_input`) and subscriptions. |
+| `core/expressions.yaml` | 92 | All `parse_expression_template` cases run directly through `ExpressionParser`. Adjacent literal output is joined and empty literals removed using the upstream harness rule. |
+| `core/message_processor_v1_0.yaml` | 9 selected cases | Exact upstream v1.0 lifecycle messages (inline `createSurface` initialization, optional `catalogId`, surface/component metadata extensions, `null` deletion, multi-stage pipelines, safe noop delete) replayed through a Material catalog. |
+| `core/validator_v1_0.yaml` | 1 selected case | Every valid and malformed v1.0 envelope step from `test_validator_1_0` is validated with `AgentToRendererMessageSchema` and valid steps are processed through `MessageProcessor`. |
 
 The rendered regressions in
 [`tests/conformance/rendered.test.tsx`](../tests/conformance/rendered.test.tsx)
 cover the package-owned layer around those vectors: a bound `Text` updates and
-clears after processor data-model messages, and two simultaneously rendered
+clears through v1.0 `value: null` deletion, and two simultaneously rendered
 surfaces keep their data isolated.
 
 Run the focused coverage with:
@@ -36,31 +36,10 @@ node scripts/update-conformance.mjs
 
 ## Limits
 
-`MessageProcessor` receives the typed `A2uiMessage` model and applies it to
-surfaces. The public `A2uiMessageSchema` validates the envelope before the
-processor. MessageProcessor does not run the separate upstream validator
-harness. The uncovered v0.9 validator rules are duplicate component IDs, missing roots,
-dangling and cyclic child references, orphan and template reachability,
-invalid paths in the old message shape, and function-call recursion limits.
-Those rules require the upstream validator/schema harness and are not silently
-counted as passing here. The malformed envelope steps in
-`test_validator_0_9` (missing or wrong `version`, wrong field types, and a
-missing `catalogId`) are covered by `A2uiMessageSchema`; MessageProcessor's
-typed-message contract begins after that validation. The test checks rejection
-and the expected field path; upstream simplified-schema categories/codes are
-adapted to Zod's error representation rather than compared verbatim.
-
-The upstream v0.8 vectors and the upstream v1.0 protocol test cases are not
-part of this package's target. The tests accept v0.9 and v0.9.1, whose
-`web_core` entry documents the state and expression vectors as compatible.
-They make no v1.0 support claim.
-
-The installed `@a2ui/web_core@0.10.7` parser has one known floor discrepancy:
-it accepts the malformed expression `${1.2.3}` in
-`test_expr_error_invalid_number_two_points`, although the pinned upstream
-vector expects `Invalid number literal`. The test uses Vitest's expected-failure
-mode only for that exact package version and case, so `0.11` and later stay
-strict and detect a regression if the parser still accepts it. The recommended
-conformance floor is `@a2ui/web_core@0.11`; there is no runtime workaround in
-this package. The exception is recorded in
+`useA2ui` validates incoming message envelopes with `AgentToRendererMessageSchema`
+before handing them to `MessageProcessor`. Additional upstream conformance
+suites that target full standalone validator harnesses, v0.8/v0.9 legacy
+envelopes, or custom protocol adapters remain upstream `web_core`
+responsibilities rather than being duplicated here; exclusions are recorded in
 [`fixtures/conformance/manifest.json`](../fixtures/conformance/manifest.json).
+No known failures exist at `@a2ui/web_core@0.16.1`.

@@ -1,12 +1,12 @@
 import { memo, useCallback, useMemo, useRef, useSyncExternalStore, type FC, type ReactNode } from 'react'
 import {
-  ActionSchema,
   GenericBinder,
   type ComponentApi,
   type ComponentContext,
   type InferredComponentApiSchemaType,
   type ResolveA2uiProps,
-} from '@a2ui/web_core/v0_9'
+} from '@a2ui/web_core'
+import { ActionSchema } from '@a2ui/web_core/v1_0'
 
 import { runUserActivation } from '../internal/activation'
 
@@ -45,6 +45,11 @@ export interface Material3ComponentImplementation<Api extends ComponentApi = Com
   readonly render: FC<A2uiHostProps>
 }
 
+interface HostAccessibilityAttributes {
+  readonly live?: 'off' | 'polite' | 'assertive'
+  readonly hidden?: boolean
+}
+
 /**
  * Returns the snapshot with each action closure entered through the
  * user-activation scope (ADR 0005), or the snapshot itself when it has none.
@@ -58,7 +63,8 @@ function withUserActivation<Props extends object>(props: Props, raw: Record<stri
   for (const [key, value] of Object.entries(props)) {
     if (typeof value !== 'function' || !ActionSchema.safeParse(raw[key]).success) continue
     const copy: Record<string, unknown> = wrapped ?? { ...(props as Record<string, unknown>) }
-    copy[key] = () => runUserActivation(value as () => unknown)
+    copy[key] = (...args: unknown[]) =>
+      runUserActivation(() => (value as (...actionArgs: unknown[]) => unknown)(...args))
     wrapped = copy
   }
   return (wrapped ?? props) as Props
@@ -67,6 +73,36 @@ function withUserActivation<Props extends object>(props: Props, raw: Record<stri
 interface BinderSlot<Props> {
   readonly context: ComponentContext
   readonly binder: GenericBinder<Props>
+}
+
+function AccessibilityRegion({
+  live,
+  hidden,
+  children,
+}: {
+  readonly live?: 'off' | 'polite' | 'assertive'
+  readonly hidden?: boolean
+  readonly children: ReactNode
+}) {
+  const isHidden = hidden === true
+  const setRef = useCallback(
+    (element: HTMLDivElement | null) => {
+      if (!element) return
+      element.inert = isHidden
+      element.toggleAttribute('inert', isHidden)
+    },
+    [isHidden],
+  )
+  return (
+    <div
+      ref={setRef}
+      className="m3e-a2ui-a11y"
+      aria-live={live}
+      aria-hidden={typeof hidden === 'boolean' ? hidden : undefined}
+    >
+      {children}
+    </div>
+  )
 }
 
 /**
@@ -78,7 +114,9 @@ interface BinderSlot<Props> {
  * unmounting — including StrictMode's simulated remount — leaves no listeners
  * behind. Props reach the render function through `useSyncExternalStore`, so
  * a data-model change re-renders exactly the components bound to it. Action
- * closures are wrapped in the user-activation scope on the way through.
+ * closures are wrapped in the user-activation scope on the way through, and
+ * v1.0 `@accessibility` `live` / `hidden` flags apply to an inert-capable
+ * `display: contents` boundary when present.
  */
 export function createMaterial3Component<Api extends ComponentApi>(
   api: Api,
@@ -116,9 +154,25 @@ export function createMaterial3Component<Api extends ComponentApi>(
       [snapshot, context],
     )
 
-    return <MemoizedRender props={props} context={context} buildChild={buildChild} />
+    const a11y = (props as { readonly accessibility?: HostAccessibilityAttributes }).accessibility
+    const element = <MemoizedRender props={props} context={context} buildChild={buildChild} />
+    if (a11y && (a11y.live !== undefined || typeof a11y.hidden === 'boolean')) {
+      return (
+        <AccessibilityRegion live={a11y.live} hidden={a11y.hidden}>
+          {element}
+        </AccessibilityRegion>
+      )
+    }
+    return element
   }
   Host.displayName = `A2ui(${api.name})`
 
-  return { name: api.name, schema: api.schema, render: Host }
+  return {
+    name: api.name,
+    schema: api.schema,
+    ...(api.allowedParents ? { allowedParents: api.allowedParents } : {}),
+    ...(api.allowedChildren ? { allowedChildren: api.allowedChildren } : {}),
+    ...(api.metadata !== undefined ? { metadata: api.metadata } : {}),
+    render: Host,
+  }
 }

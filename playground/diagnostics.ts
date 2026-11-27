@@ -1,4 +1,4 @@
-import type { A2uiMessage } from '@a2ui/web_core/v0_9'
+import type { AgentToRendererMessage } from '@a2ui/web_core/v1_0'
 
 export type DiagnosticPhase = 'initialization' | 'actionable'
 
@@ -22,7 +22,7 @@ function isExpressionError(error: unknown): boolean {
   )
 }
 
-function surfaceIdOf(message: A2uiMessage): string | undefined {
+function surfaceIdOf(message: AgentToRendererMessage): string | undefined {
   if ('createSurface' in message) return message.createSurface.surfaceId
   if ('updateDataModel' in message) return message.updateDataModel.surfaceId
   if ('deleteSurface' in message) return message.deleteSurface.surfaceId
@@ -31,11 +31,11 @@ function surfaceIdOf(message: A2uiMessage): string | undefined {
 
 /**
  * Tracks the small amount of stream state needed to label raw protocol
- * diagnostics. It deliberately has no recovery state: a data-model update is
- * evidence that initialization progressed, not evidence that an expression
- * subsequently succeeded. The host calls `finish` at the stream boundary so
- * a replay with no data-model message cannot leave later reports classified as
- * initialization forever.
+ * diagnostics. It deliberately has no recovery state: a data-model update (or
+ * inline `createSurface.dataModel`) is evidence that initialization progressed,
+ * not evidence that an expression subsequently succeeded. The host calls
+ * `finish` at the stream boundary so a replay with no data-model message cannot
+ * leave later reports classified as initialization forever.
  */
 export function createStreamingDiagnosticTracker(
   onDiagnostic: (diagnostic: StreamingDiagnostic) => void,
@@ -43,11 +43,14 @@ export function createStreamingDiagnosticTracker(
   const surfaces = new Map<string, SurfaceState>()
 
   return {
-    observe(message: A2uiMessage) {
+    observe(message: AgentToRendererMessage) {
       const surfaceId = surfaceIdOf(message)
       if ('createSurface' in message) {
         if (!surfaces.has(message.createSurface.surfaceId)) {
-          surfaces.set(message.createSurface.surfaceId, { dataModelSeen: false, streamFinished: false })
+          surfaces.set(message.createSurface.surfaceId, {
+            dataModelSeen: message.createSurface.dataModel !== undefined,
+            streamFinished: false,
+          })
         }
       } else if ('updateDataModel' in message && surfaceId) {
         const state = surfaces.get(surfaceId) ?? { dataModelSeen: false, streamFinished: false }

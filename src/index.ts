@@ -1,18 +1,15 @@
 export {
   BASIC_CATALOG_ID,
   MATERIAL_CATALOG_ID,
-  MINIMAL_CATALOG_ID,
   createMaterial3Catalog,
   material3Catalog,
   material3Catalogs,
   material3Components,
   material3ExtendedCatalog,
   material3ExtendedComponents,
-  material3MinimalCatalog,
-  material3MinimalComponents,
   type CreateMaterial3CatalogOptions,
 } from './catalog'
-export { CapitalizeImplementation, OpenUrlImplementation } from './catalog/functions'
+export { OpenUrlImplementation } from './catalog/functions'
 export {
   AudioPlayerImplementation,
   ButtonImplementation,
@@ -61,6 +58,8 @@ export {
 } from './runtime/A2uiSurface'
 export {
   useA2ui,
+  type A2uiMessageInput,
+  type A2uiMessageListWrapper,
   type A2uiProtocolVersion,
   type UseA2uiOptions,
   type UseA2uiResult,

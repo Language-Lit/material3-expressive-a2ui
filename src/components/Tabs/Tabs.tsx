@@ -1,22 +1,10 @@
 import { Tabs as MaterialTabs, type TabItem } from '@language-lit/material3-expressive'
-import { TabsApi } from '@a2ui/web_core/v0_9/basic_catalog'
+import { TabsApi } from '@a2ui/web_core/catalogs/basic/v1'
 
-import { referencedSchema } from '../../internal/catalogSchemas'
 import { asText, weightStyle } from '../../internal/layout'
 import { createMaterial3Component } from '../../runtime/adapter'
 
-const tabs = TabsApi.schema.shape.tabs
-const tab = tabs.element.extend({
-  title: referencedSchema(tabs.element.shape.title, 'DynamicString'),
-})
-const api = {
-  name: TabsApi.name,
-  schema: TabsApi.schema.extend({
-    tabs: tab.array().min(1).describe(tabs.description ?? ''),
-  }),
-}
-
-export const TabsImplementation = createMaterial3Component(api, ({ props, buildChild }) => {
+export const TabsImplementation = createMaterial3Component(TabsApi, ({ props, buildChild }) => {
   const tabs = Array.isArray(props.tabs) ? props.tabs : []
   const items: TabItem[] = tabs.map((tab, index) => ({
     value: String(index),

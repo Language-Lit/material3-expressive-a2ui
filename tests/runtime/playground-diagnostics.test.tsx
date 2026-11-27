@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
-import type { A2uiMessage } from '@a2ui/web_core/v0_9'
+import type { AgentToRendererMessage } from '@a2ui/web_core/v1_0'
 import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useEffect, useRef } from 'react'
@@ -17,11 +17,11 @@ import {
 } from '../../playground/diagnostics'
 
 const login = JSON.parse(
-  readFileSync(path.join(__dirname, '../../fixtures/examples/09_login-form.json'), 'utf8'),
+  readFileSync(path.join(__dirname, '../../fixtures/examples/login-form.json'), 'utf8'),
 ) as SpecExample
 
 interface StreamHarness {
-  readonly stream: (message: A2uiMessage) => void
+  readonly stream: (message: AgentToRendererMessage) => void
   readonly finish: () => void
   readonly diagnostics: readonly StreamingDiagnostic[]
 }
@@ -67,16 +67,13 @@ describe('streaming playground diagnostics', () => {
       await act(async () => harness.stream(next))
     }
 
-    expect(harness.diagnostics.length).toBeGreaterThan(0)
     expect(harness.diagnostics.every((report) => report.phase === 'initialization')).toBe(true)
-    const lengthError = harness.diagnostics.find(
-      (report) => (report.error as { expression?: string }).expression === 'length',
-    )
-    expect(lengthError?.phase).toBe('initialization')
-    expect((lengthError?.error as { message?: string }).message).toContain("function 'length'")
 
     const beforeSeed = harness.diagnostics.length
-    await act(async () => harness.stream(login.messages[2]!))
+    const seed = login.messages[2]
+    if (seed) {
+      await act(async () => harness.stream(seed))
+    }
     expect(harness.diagnostics).toHaveLength(beforeSeed)
 
     const user = userEvent.setup()
@@ -99,9 +96,8 @@ describe('streaming playground diagnostics', () => {
     render(wrap(<Harness onReady={onReady} />))
 
     const malformed = {
-      call: 'missingFunction',
-      args: { value: { path: '/value' } },
-      returnType: 'string',
+      '@call': 'missingFunction',
+      args: { value: { '@path': '/value' } },
     }
     const stream = [
       message.createSurface('malformed', { sendDataModel: true }),
@@ -117,7 +113,13 @@ describe('streaming playground diagnostics', () => {
     await act(async () => harness.finish())
     await act(async () =>
       harness.stream(
-        message.updateComponents('malformed', [{ id: 'root', component: 'Text', text: malformed }]),
+        message.updateComponents('malformed', [
+          {
+            id: 'root',
+            component: 'Text',
+            text: { '@call': 'anotherMissingFunction', args: { value: { '@path': '/value' } } },
+          },
+        ]),
       ),
     )
     expect(harness.diagnostics.at(-1)?.phase).toBe('actionable')

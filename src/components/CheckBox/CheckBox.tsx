@@ -1,22 +1,13 @@
 import { Checkbox as MaterialCheckbox, Text as MaterialText } from '@language-lit/material3-expressive'
-import { CheckBoxApi } from '@a2ui/web_core/v0_9/basic_catalog'
+import { CheckBoxApi } from '@a2ui/web_core/catalogs/basic/v1'
 import { useState } from 'react'
 
-import { referencedSchema } from '../../internal/catalogSchemas'
 import { isInvalid, validationMessage } from '../../internal/checks'
 import { asText, weightStyle } from '../../internal/layout'
 import { useBoundValue } from '../../internal/useBoundValue'
 import { createMaterial3Component } from '../../runtime/adapter'
 
-const api = {
-  name: CheckBoxApi.name,
-  schema: CheckBoxApi.schema.extend({
-    label: referencedSchema(CheckBoxApi.schema.shape.label, 'DynamicString'),
-    value: referencedSchema(CheckBoxApi.schema.shape.value, 'DynamicBoolean'),
-  }),
-}
-
-export const CheckBoxImplementation = createMaterial3Component(api, ({ props }) => {
+export const CheckBoxImplementation = createMaterial3Component(CheckBoxApi, ({ props }) => {
   const [checked, setChecked] = useBoundValue(props.value === true, props.setValue)
   const [touched, setTouched] = useState(false)
   const showError = touched && isInvalid(props)

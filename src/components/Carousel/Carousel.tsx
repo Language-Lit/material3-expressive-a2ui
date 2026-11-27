@@ -1,17 +1,19 @@
 import { Carousel as MaterialCarousel } from '@language-lit/material3-expressive'
-import { ChildListSchema } from '@a2ui/web_core/v0_9'
+import { ChildListSchema } from '@a2ui/web_core/v1_0'
 
-import { materialCommonSchema } from '../../internal/materialSchemas'
+import { defineMaterialCommonSchema, materialCommonBase } from '../../internal/materialSchemas'
 import { asText, weightStyle } from '../../internal/layout'
 import { createMaterial3Component } from '../../runtime/adapter'
 
 const api = {
   name: 'Carousel',
-  schema: materialCommonSchema.extend({
-    children: ChildListSchema.describe(
-      'REF:common_types.json#/$defs/ChildList|Items in a hero carousel; accepts explicit child IDs or a data template.',
-    ),
-  }),
+  schema: defineMaterialCommonSchema(
+    materialCommonBase.extend({
+      children: ChildListSchema.describe(
+        'REF:#/$defs/ChildList|Items in a hero carousel; accepts explicit child IDs or a data template.',
+      ),
+    }),
+  ),
 }
 export const CarouselImplementation = createMaterial3Component(api, ({ props, buildChild }) => {
   const items = (props.children ?? []).map((child, index) => ({

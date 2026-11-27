@@ -1,5 +1,8 @@
-import { Catalog, type FunctionImplementation } from '@a2ui/web_core/v0_9'
-import { BASIC_FUNCTIONS, createBasicCatalogFunctions } from '@a2ui/web_core/v0_9/basic_catalog'
+import { Catalog, type CatalogOptions, type FunctionImplementation } from '@a2ui/web_core'
+import {
+  BASIC_FUNCTIONS,
+  createBasicCatalogFunctions,
+} from '@a2ui/web_core/catalogs/basic/v1'
 
 import {
   AudioPlayerImplementation,
@@ -31,19 +34,12 @@ import {
   VideoImplementation,
 } from '../components'
 import type { Material3ComponentImplementation } from '../runtime/adapter'
-import { CapitalizeImplementation, OpenUrlImplementation } from './functions'
+import { OpenUrlImplementation } from './functions'
 
-/** The id of the A2UI basic catalog, as agents name it in `createSurface`. */
-export const BASIC_CATALOG_ID = 'https://a2ui.org/specification/v0_9/catalogs/basic/catalog.json'
+/** The id of the A2UI v1.0 basic catalog, as agents name it in `createSurface` or `@catalogId`. */
+export const BASIC_CATALOG_ID = 'https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json'
 
-/**
- * The id of the A2UI minimal catalog: five of the basic components and one
- * function, for agents on small models that cannot carry the basic catalog's
- * schema in their prompt.
- */
-export const MINIMAL_CATALOG_ID = 'https://a2ui.org/specification/v0_9/catalogs/minimal/catalog.json'
-
-/** Every basic-catalog component, implemented with Material 3 Expressive. */
+/** Every v1.0 basic-catalog component, implemented with Material 3 Expressive. */
 export const material3Components: readonly Material3ComponentImplementation[] = [
   TextImplementation,
   ImageImplementation,
@@ -66,18 +62,20 @@ export const material3Components: readonly Material3ComponentImplementation[] = 
 ]
 
 export interface CreateMaterial3CatalogOptions {
-  /** Catalog id to advertise. Defaults to the basic catalog's id. */
+  /** Catalog id to advertise. Defaults to the v1.0 basic catalog's id. */
   readonly id?: string
   /** Extra implementations. One with a basic-catalog name replaces that component. */
   readonly components?: readonly Material3ComponentImplementation[]
   /** Replaces the basic functions entirely. */
   readonly functions?: readonly FunctionImplementation[]
-  /** Locale for `formatNumber`, `formatCurrency` and `pluralize`. Ignored when `functions` is given. */
+  /** Locale for `formatNumber`, `formatCurrency`, `formatDate`, and `pluralize`. Ignored when `functions` is given. */
   readonly locale?: string
+  /** Optional catalog document metadata (`title`, `description`, `instructions`, etc.). */
+  readonly document?: CatalogOptions
 }
 
 /**
- * The specification's functions, with `openUrl` replaced by the package's
+ * The v1.0 specification's functions, with `openUrl` replaced by the package's
  * user-activation-guarded implementation (ADR 0005). A caller-supplied
  * `functions` list is used as given.
  */
@@ -87,49 +85,43 @@ function basicFunctions(locale?: string): FunctionImplementation[] {
 }
 
 /**
- * Builds a catalog of the Material 3 implementations plus the basic functions.
+ * Builds a v1.0 catalog of the Material 3 implementations plus the basic functions.
  * Use it to extend the basic catalog under another id, to swap one component
  * for a host-specific one, or to localise the formatting functions.
  */
 export function createMaterial3Catalog(
   options: CreateMaterial3CatalogOptions = {},
 ): Catalog<Material3ComponentImplementation> {
+  const id = options.id ?? BASIC_CATALOG_ID
   const functions = options.functions ?? basicFunctions(options.locale)
+  const documentOptions: CatalogOptions = {
+    schemaUri: 'https://json-schema.org/draft/2020-12/schema',
+    schemaId: id,
+    declaredProtocolVersion: '1.0',
+    commonTypesUri: 'common_types.json',
+    ...options.document,
+  }
   return new Catalog<Material3ComponentImplementation>(
-    options.id ?? BASIC_CATALOG_ID,
+    id,
+    '1.0',
     [...material3Components, ...(options.components ?? [])],
     [...functions],
+    documentOptions,
   )
 }
 
-/** The A2UI basic catalog rendered with Material 3 Expressive. */
-export const material3Catalog: Catalog<Material3ComponentImplementation> = createMaterial3Catalog()
+/** The A2UI v1.0 basic catalog rendered with Material 3 Expressive. */
+export const material3Catalog: Catalog<Material3ComponentImplementation> = createMaterial3Catalog({
+  document: {
+    title: 'A2UI Basic Catalog',
+    description: 'Unified catalog of basic A2UI components and functions.',
+  },
+})
 
-/**
- * The minimal catalog's components. The specification defines them with the
- * same properties as their basic-catalog namesakes, so the implementations
- * are shared.
- */
-export const material3MinimalComponents: readonly Material3ComponentImplementation[] = [
-  TextImplementation,
-  RowImplementation,
-  ColumnImplementation,
-  ButtonImplementation,
-  TextFieldImplementation,
-]
-
-/** The A2UI minimal catalog rendered with Material 3 Expressive. */
-export const material3MinimalCatalog: Catalog<Material3ComponentImplementation> =
-  new Catalog<Material3ComponentImplementation>(
-    MINIMAL_CATALOG_ID,
-    [...material3MinimalComponents],
-    [CapitalizeImplementation],
-  )
-
-/** Package-owned extension id; use inline capabilities until a host serves its schema. */
+/** Package-owned v1.0 extension id; also advertised inline via renderer capabilities. */
 export const MATERIAL_CATALOG_ID = 'https://m3e.language-lit.com/a2ui/catalogs/material3/catalog.json'
 
-/** The additional components, without the basic components. */
+/** The nine additional Material components, without the basic components. */
 export const material3ExtendedComponents: readonly Material3ComponentImplementation[] = [
   SwitchImplementation,
   SelectImplementation,
@@ -142,15 +134,18 @@ export const material3ExtendedComponents: readonly Material3ComponentImplementat
   TooltipImplementation,
 ]
 
-/** The basic catalog plus Material-specific controls and presentation. */
+/** The v1.0 basic catalog plus Material-specific controls and presentation. */
 export const material3ExtendedCatalog = createMaterial3Catalog({
   id: MATERIAL_CATALOG_ID,
   components: material3ExtendedComponents,
+  document: {
+    title: 'Material 3 Expressive A2UI Catalog',
+    description: 'Material 3 Expressive extensions and the A2UI v1.0 basic catalog.',
+  },
 })
 
-/** All shipped catalogs, registered in basic, minimal, Material order. */
+/** All shipped v1.0 catalogs, registered in basic then Material order. */
 export const material3Catalogs: readonly Catalog<Material3ComponentImplementation>[] = [
   material3Catalog,
-  material3MinimalCatalog,
   material3ExtendedCatalog,
 ]

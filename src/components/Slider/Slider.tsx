@@ -1,32 +1,11 @@
 import { Slider as MaterialSlider, Text as MaterialText } from '@language-lit/material3-expressive'
-import { DynamicNumberSchema } from '@a2ui/web_core/v0_9'
-import { SliderApi } from '@a2ui/web_core/v0_9/basic_catalog'
+import { SliderApi } from '@a2ui/web_core/catalogs/basic/v1'
 import { useState } from 'react'
 
-import { referencedSchema } from '../../internal/catalogSchemas'
 import { isInvalid, validationMessage } from '../../internal/checks'
 import { asText, weightStyle } from '../../internal/layout'
 import { useBoundValue } from '../../internal/useBoundValue'
 import { createMaterial3Component } from '../../runtime/adapter'
-
-/**
- * The v0.9.1 `Slider` plus `steps`, which the v1.0 basic catalog adds: the
- * number of discrete divisions in the range, with the value snapping to
- * them. Accepted ahead of a v1.0 runtime as forward compatibility (ADR 0004).
- */
-const SliderApiWithSteps = {
-  name: SliderApi.name,
-  schema: SliderApi.schema.extend({
-    label: referencedSchema(SliderApi.schema.shape.label, 'DynamicString'),
-    value: referencedSchema(SliderApi.schema.shape.value, 'DynamicNumber'),
-    steps: referencedSchema(
-      DynamicNumberSchema.optional().describe(
-        'The number of discrete divisions in the slider range. If specified, the slider will snap to discrete values.',
-      ),
-      'DynamicNumber',
-    ),
-  }),
-}
 
 /**
  * Without `steps` the range decides the precision: a range of at most 1
@@ -52,7 +31,7 @@ export function stepPrecision(step: number): number {
   return 4
 }
 
-export const SliderImplementation = createMaterial3Component(SliderApiWithSteps, ({ props }) => {
+export const SliderImplementation = createMaterial3Component(SliderApi, ({ props }) => {
   const min = typeof props.min === 'number' ? props.min : 0
   const max = typeof props.max === 'number' && props.max > min ? props.max : min + 100
   const steps =
